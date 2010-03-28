@@ -8,20 +8,21 @@
     using System.IO;
     using System.Xml;
 
+    /// <summary>
+    /// Installer Custom Actions for the Addin
+    /// </summary>
     [RunInstaller(true)]
     public partial class AddinInstaller : Installer
     {
         /// <summary>
         /// Namespace used in the .addin configuration file.
         /// </summary>         
-
         private const string ExtNameSpace =
           "http://schemas.microsoft.com/AutomationExtensibility";
 
         /// <summary>
-        /// Constructor. Initializes components.
+        /// Initializes a new instance of the AddinInstaller class.
         /// </summary>
-
         public AddinInstaller()
             : base()
         {
@@ -33,7 +34,6 @@
         /// which will be executed during install process.
         /// </summary>
         /// <param name="savedState">The saved state.</param>
-
         public override void Install(IDictionary savedState)
         {
             // Uncomment the following line, recompile the setup
@@ -45,17 +45,12 @@
             base.Install(savedState);
 
             // Parameters required to pass in from installer
-
             string productName = this.Context.Parameters["ProductName"];
             string assemblyName = this.Context.Parameters["AssemblyName"];
 
             // Setup .addin path and assembly path
-
-            string addinTargetPath = Path.Combine(Environment.GetFolderPath(
-                   Environment.SpecialFolder.MyDocuments),
-                   @"Visual Studio 2008\Addins");
-            string assemblyPath = Path.GetDirectoryName(
-                   System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008\Addins");
+            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string addinControlFileName = assemblyName + ".Addin";
             string addinAssemblyFileName = assemblyName + ".dll";
 
@@ -74,18 +69,14 @@
                 xnm.AddNamespace("def", ExtNameSpace);
 
                 // Update Addin/Assembly node
-
-                XmlNode node = doc.SelectSingleNode("/def:" +
-                    "Extensibility/def:Addin/def:Assembly", xnm);
+                XmlNode node = doc.SelectSingleNode("/def:Extensibility/def:Addin/def:Assembly", xnm);
                 if (node != null)
                 {
                     node.InnerText = Path.Combine(assemblyPath, addinAssemblyFileName);
                 }
 
                 // Update ToolsOptionsPage/Assembly node
-
-                node = doc.SelectSingleNode("/def:Extensibility/def:" +
-                       "ToolsOptionsPage/def:Category/def:SubCategory/def:Assembly", xnm);
+                node = doc.SelectSingleNode("/def:Extensibility/def:ToolsOptionsPage/def:Category/def:SubCategory/def:Assembly", xnm);
                 if (node != null)
                 {
                     node.InnerText = Path.Combine(assemblyPath, addinAssemblyFileName);
@@ -97,7 +88,6 @@
                 File.Copy(sourceFile, targetFile, true);
 
                 // Save AddinPath to be used in Uninstall or Rollback
-
                 savedState.Add("AddinPath", targetFile);
             }
             catch (Exception ex)
@@ -109,13 +99,9 @@
         /// <summary>
         /// Overrides Installer.Rollback, which will be executed during rollback process.
         /// </summary>
-
         /// <param name="savedState">The saved state.</param>
-
         public override void Rollback(IDictionary savedState)
         {
-            ////Debugger.Break();
-
             base.Rollback(savedState);
 
             try
@@ -135,13 +121,9 @@
         /// <summary>
         /// Overrides Installer.Uninstall, which will be executed during uninstall process.
         /// </summary>
-
         /// <param name="savedState">The saved state.</param>
-
         public override void Uninstall(IDictionary savedState)
         {
-            ////Debugger.Break();
-
             base.Uninstall(savedState);
 
             try
