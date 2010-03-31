@@ -140,7 +140,7 @@
                         CodeElement element = fileCodeModel.CodeElements.Item(i);
                         for (int j = 1; j <= element.Children.Count; j++)
                         {
-                            if (element.Children.Item(j).Kind == vsCMElement.vsCMElementClass)
+                            if (element.Children.Item(j).Kind == vsCMElement.vsCMElementClass || element.Children.Item(j).Kind == vsCMElement.vsCMElementInterface || element.Children.Item(j).Kind == vsCMElement.vsCMElementStruct)
                             {
                                 if (!EvaluateElementsWithinClassSorted(element.Children.Item(j)))
                                 {
