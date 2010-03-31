@@ -67,7 +67,7 @@
             /// A class property.
             /// </summary>
             PROPERTY,
-            
+
             /// <summary>
             /// A method within a class.
             /// </summary>
@@ -142,7 +142,10 @@
                         {
                             if (element.Children.Item(j).Kind == vsCMElement.vsCMElementClass)
                             {
-                                SortFunctionsWithinClass(element.Children.Item(j));
+                                if (!EvaluateElementsWithinClassSorted(element.Children.Item(j)))
+                                {
+                                    SortFunctionsWithinClass(element.Children.Item(j));
+                                }
                             }
                             else
                             {
@@ -176,6 +179,173 @@
 
             return false;
         }
+
+        bool EvaluateElementsWithinClassSorted(CodeElement codeElement)
+        {
+            try
+            {
+                CodeBlock lastBlock = null;
+                CodeBlock currentBlock = null;
+                Array accessLevels = Enum.GetValues(typeof(vsCMAccess));
+                for (int i = 1; i <= codeElement.Children.Count; i++)
+                {
+                    CodeElement element = codeElement.Children.Item(i);
+                    EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
+                    EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
+                    switch (element.Kind)
+                    {
+                        case vsCMElement.vsCMElementVariable:
+                            CodeVariable variable = element as CodeVariable;
+                            if (variable != null)
+                            {
+                                currentBlock = new CodeBlock(variable.Access, ClassPlacement.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeVariable " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementFunction:
+                            // method, constructor, or finalizer
+                            CodeFunction function = element as CodeFunction;
+                            if (function != null)
+                            {
+                                if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
+                                {
+                                    currentBlock = new CodeBlock(function.Access, ClassPlacement.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                }
+                                else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
+                                {
+                                    currentBlock = new CodeBlock(function.Access, ClassPlacement.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                }
+                                else
+                                {
+                                    currentBlock = new CodeBlock(function.Access, ClassPlacement.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                }
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeFunction " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementDelegate:
+                            CodeDelegate delegateElement = element as CodeDelegate;
+                            if (delegateElement != null)
+                            {
+                                currentBlock = new CodeBlock(delegateElement.Access, ClassPlacement.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeDelegate " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementEvent:
+                            currentBlock = new CodeBlock(vsCMAccess.vsCMAccessPublic, ClassPlacement.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            break;
+                        case vsCMElement.vsCMElementEnum:
+                            CodeEnum enumElement = element as CodeEnum;
+                            if (enumElement != null)
+                            {
+                                currentBlock = new CodeBlock(enumElement.Access, ClassPlacement.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeEnum " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementInterface:
+                            CodeInterface interfaceElement = element as CodeInterface;
+                            if (interfaceElement != null)
+                            {
+                                currentBlock = new CodeBlock(interfaceElement.Access, ClassPlacement.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeInterface " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementProperty:
+                            CodeProperty propertyElement = element as CodeProperty;
+                            if (propertyElement != null)
+                            {
+                                currentBlock = new CodeBlock(propertyElement.Access, ClassPlacement.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeProperty " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementStruct:
+                            CodeStruct structElement = element as CodeStruct;
+                            if (structElement != null)
+                            {
+                                currentBlock = new CodeBlock(structElement.Access, ClassPlacement.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeStruct " + element.Name + " null");
+                            }
+
+                            break;
+                        case vsCMElement.vsCMElementClass:
+                            CodeClass classElement = element as CodeClass;
+                            if (classElement != null)
+                            {
+                                currentBlock = new CodeBlock(classElement.Access, ClassPlacement.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            }
+                            else
+                            {
+                                Debug.WriteLine("CodeStruct " + element.Name + " null");
+                            }
+
+                            break;
+                        default:
+                            Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
+                            currentBlock = new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint));
+                            break;
+                    }
+
+                    if (lastBlock != null)
+                    {
+                        if (lastBlock.Placement != currentBlock.Placement)
+                        {
+                            if (lastBlock.Placement.CompareTo(currentBlock.Placement) > 0)
+                            {
+                                Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            if (lastBlock.Access.CompareTo(currentBlock.Access) > 0)
+                            {
+                                Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        lastBlock = currentBlock;
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine(exc.ToString());
+                Debug.WriteLine("-- Class Reverted --");
+            }
+
+            Debug.WriteLine("Class is already sorted, returning");
+            return true;
+        }
+
 
         /// <summary>
         /// Sorts functions within a class.
