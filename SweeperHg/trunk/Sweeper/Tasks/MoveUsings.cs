@@ -120,10 +120,13 @@
             for (int i = 0; i < insertionPoints.Count; i++)
             {
                 EditPoint origin = insertionPoints[i].CreateEditPoint();
-                origin.Insert("\r\n");
-                for (int j = 0; j < usingStatements.Count; j++)
+                if (usingStatements.Count > 0)
                 {
-                    origin.Insert(usingStatements[j] + "\r\n");
+                    origin.Insert("\r\n");
+                    for (int j = 0; j < usingStatements.Count; j++)
+                    {
+                        origin.Insert(usingStatements[j] + "\r\n");
+                    }
                 }
 
                 origin.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
