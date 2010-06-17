@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_0177BC1F5CAE988866FDA2F7E41CE1C5"
+        "OwnerKey" = "8:_70ECCD5324D74D5B83358413414EC22A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_083BB025EE3C435F9E7EC491540E27C4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -113,6 +119,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_083BB025EE3C435F9E7EC491540E27C4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_0177BC1F5CAE988866FDA2F7E41CE1C5"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -292,6 +304,32 @@
         }
         "File"
         {
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_0177BC1F5CAE988866FDA2F7E41CE1C5"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.0.1.37419, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                }
+            "SourcePath" = "8:SweeperUI.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_40BE981457194FAE8C38B02D0F8C372F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_096BA82FCE98D5C72FFB7FFAA76FA5AC"
             {
             "AssemblyRegister" = "3:1"
@@ -612,14 +650,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Sweeper"
-        "ProductCode" = "8:{AB8800B9-5877-4805-A235-EDE26CE9E0AF}"
-        "PackageCode" = "8:{5071B7E2-794B-406D-9EF6-21258B3A91E0}"
+        "ProductCode" = "8:{519BAA70-97A9-47D2-915D-5E5C3D9A18DF}"
+        "PackageCode" = "8:{39039AC0-4A76-49CC-962A-728D911AE07F}"
         "UpgradeCode" = "8:{73BF1AB7-3E54-4AB2-8CF7-089CF7B8145E}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.0.1"
+        "ProductVersion" = "8:0.0.2"
         "Manufacturer" = "8:Katalyst Studios"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://amoore.katalyststudios.com"

@@ -192,6 +192,7 @@
                     CodeElement element = codeElement.Children.Item(i);
                     EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
                     EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
+                    bool skipElement = false;
                     switch (element.Kind)
                     {
                         case vsCMElement.vsCMElementVariable:
@@ -307,32 +308,36 @@
                             break;
                         default:
                             Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                            currentBlock = new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint));
+                            //currentBlock = new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint));
+                            skipElement = true;
                             break;
                     }
 
-                    if (lastBlock != null)
+                    if (!skipElement)
                     {
-                        if (lastBlock.Placement != currentBlock.Placement)
+                        if (lastBlock != null)
                         {
-                            if (lastBlock.Placement.CompareTo(currentBlock.Placement) > 0)
+                            if (lastBlock.Placement != currentBlock.Placement)
                             {
-                                Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
-                                return false;
+                                if (lastBlock.Placement.CompareTo(currentBlock.Placement) > 0)
+                                {
+                                    Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                if (currentBlock.Access.CompareTo(lastBlock.Access) > 0)
+                                {
+                                    Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
+                                    return false;
+                                }
                             }
                         }
                         else
                         {
-                            if (lastBlock.Access.CompareTo(currentBlock.Access) > 0)
-                            {
-                                Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
-                                return false;
-                            }
+                            lastBlock = currentBlock;
                         }
-                    }
-                    else
-                    {
-                        lastBlock = currentBlock;
                     }
                 }
             }
@@ -371,6 +376,8 @@
                         CodeElement element = codeElement.Children.Item(i);
                         EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
                         EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
+                        bool skipElement = false;
+
                         switch (element.Kind)
                         {
                             case vsCMElement.vsCMElementVariable:
@@ -486,19 +493,18 @@
                                 break;
                             default:
                                 Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                                blocks.Add(new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                //blocks.Add(new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                skipElement = true;
                                 break;
                         }
 
-                        newStartPoint.Delete(element.EndPoint);
-                        newStartPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+                        if (!skipElement)
+                        {
+                            newStartPoint.Delete(element.EndPoint);
+                            newStartPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
 
-                        i--;
-                    }
-
-                    if (codeElement.Children.Count != 0)
-                    {
-                        System.Diagnostics.Debugger.Break();
+                            i--;
+                        }
                     }
 
                     blocks.Sort(delegate(CodeBlock c1, CodeBlock c2)
@@ -509,7 +515,7 @@
                         }
                         else
                         {
-                            return c1.Access.CompareTo(c2.Access);
+                            return c2.Access.CompareTo(c1.Access);
                         }
                     });
 
