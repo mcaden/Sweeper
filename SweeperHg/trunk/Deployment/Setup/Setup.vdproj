@@ -124,12 +124,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_0177BC1F5CAE988866FDA2F7E41CE1C5"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_D6027931EF6B6BF017C4C2201A8A43E5"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -155,6 +149,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_70ECCD5324D74D5B83358413414EC22A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_0177BC1F5CAE988866FDA2F7E41CE1C5"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -308,9 +308,14 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.0.1.37419, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.0.1.37521, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_0177BC1F5CAE988866FDA2F7E41CE1C5"
+                    {
+                    "Name" = "8:SweeperUI.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:SweeperUI.dll"
             "TargetName" = "8:"
@@ -650,14 +655,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Sweeper"
-        "ProductCode" = "8:{519BAA70-97A9-47D2-915D-5E5C3D9A18DF}"
-        "PackageCode" = "8:{39039AC0-4A76-49CC-962A-728D911AE07F}"
+        "ProductCode" = "8:{0518AE09-014E-40F0-A735-D081ACDD5899}"
+        "PackageCode" = "8:{24D70C19-AFD4-4335-A01B-067D05578B88}"
         "UpgradeCode" = "8:{73BF1AB7-3E54-4AB2-8CF7-089CF7B8145E}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.0.2"
+        "ProductVersion" = "8:0.1"
         "Manufacturer" = "8:Katalyst Studios"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://amoore.katalyststudios.com"
