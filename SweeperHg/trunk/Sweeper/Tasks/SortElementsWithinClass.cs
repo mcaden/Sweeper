@@ -180,7 +180,12 @@
             return false;
         }
 
-        bool EvaluateElementsWithinClassSorted(CodeElement codeElement)
+        /// <summary>
+        /// Evaluates whether elements within a class have been sorted already or not.
+        /// </summary>
+        /// <param name="codeElement">The code element representing the class.</param>
+        /// <returns>True if the class has already been sorted.</returns>
+        private bool EvaluateElementsWithinClassSorted(CodeElement codeElement)
         {
             try
             {
@@ -308,7 +313,6 @@
                             break;
                         default:
                             Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                            //currentBlock = new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint));
                             skipElement = true;
                             break;
                     }
@@ -350,7 +354,6 @@
             Debug.WriteLine("Class is already sorted, returning");
             return true;
         }
-
 
         /// <summary>
         /// Sorts functions within a class.
@@ -493,7 +496,6 @@
                                 break;
                             default:
                                 Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                                //blocks.Add(new CodeBlock(vsCMAccess.vsCMAccessPrivate, ClassPlacement.CLASS, "/*UKNOWN*/ " + GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 skipElement = true;
                                 break;
                         }

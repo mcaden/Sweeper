@@ -17,8 +17,7 @@
         /// <summary>
         /// Namespace used in the .addin configuration file.
         /// </summary>         
-        private const string ExtNameSpace =
-          "http://schemas.microsoft.com/AutomationExtensibility";
+        private const string ExtNameSpace = "http:// schemas.microsoft.com/AutomationExtensibility";
 
         /// <summary>
         /// Initializes a new instance of the AddinInstaller class.
@@ -39,60 +38,27 @@
             // Uncomment the following line, recompile the setup
             // project and run the setup executable if you want
             // to debug into this custom action.
-
-            ////Debugger.Break();
-
+            //// Debugger.Break();
             base.Install(savedState);
 
             // Parameters required to pass in from installer
             string productName = this.Context.Parameters["ProductName"];
             string assemblyName = this.Context.Parameters["AssemblyName"];
 
-            // Setup .addin path and assembly path
-            string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008\Addins");
-            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            string addinControlFileName = assemblyName + ".Addin";
-            string addinAssemblyFileName = assemblyName + ".dll";
-
-            try
+            if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008")))
             {
-                DirectoryInfo dirInfo = new DirectoryInfo(addinTargetPath);
-                if (!dirInfo.Exists)
-                {
-                    dirInfo.Create();
-                }
+                // Setup .addin path and assembly path
+                string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008\Addins");
 
-                string sourceFile = Path.Combine(assemblyPath, addinControlFileName);
-                XmlDocument doc = new XmlDocument();
-                doc.Load(sourceFile);
-                XmlNamespaceManager xnm = new XmlNamespaceManager(doc.NameTable);
-                xnm.AddNamespace("def", ExtNameSpace);
-
-                // Update Addin/Assembly node
-                XmlNode node = doc.SelectSingleNode("/def:Extensibility/def:Addin/def:Assembly", xnm);
-                if (node != null)
-                {
-                    node.InnerText = Path.Combine(assemblyPath, addinAssemblyFileName);
-                }
-
-                // Update ToolsOptionsPage/Assembly node
-                node = doc.SelectSingleNode("/def:Extensibility/def:ToolsOptionsPage/def:Category/def:SubCategory/def:Assembly", xnm);
-                if (node != null)
-                {
-                    node.InnerText = Path.Combine(assemblyPath, addinAssemblyFileName);
-                }
-
-                doc.Save(sourceFile);
-
-                string targetFile = Path.Combine(addinTargetPath, addinControlFileName);
-                File.Copy(sourceFile, targetFile, true);
-
-                // Save AddinPath to be used in Uninstall or Rollback
-                savedState.Add("AddinPath", targetFile);
+                SetupAddin(savedState, assemblyName, addinTargetPath, "9.0");
             }
-            catch (Exception ex)
+
+            if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2010")))
             {
-                Debug.WriteLine(ex.ToString());
+                // Setup .addin path and assembly path
+                string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2010\Addins");
+
+                SetupAddin(savedState, assemblyName, addinTargetPath, "10.0");
             }
         }
 
@@ -133,6 +99,74 @@
                 {
                     File.Delete(fileName);
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Sets up the addin for a version of Visual Studio
+        /// </summary>
+        /// <param name="savedState">The installer state</param>
+        /// <param name="assemblyName">The name of the assembly</param>
+        /// <param name="addinTargetPath">The path to the assembly</param>
+        /// <param name="version">The version number of visual studio.  9.0 is VS 2008, 10.0 is VS 2010</param>
+        private static void SetupAddin(IDictionary savedState, string assemblyName, string addinTargetPath, string version)
+        {
+            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string addinControlFileName = assemblyName + ".Addin";
+            string addinAssemblyFileName = assemblyName + ".dll";
+
+            try
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(addinTargetPath);
+                if (!dirInfo.Exists)
+                {
+                    dirInfo.Create();
+                }
+
+                string sourceFile = Path.Combine(assemblyPath, addinControlFileName);
+                XmlDocument doc = new XmlDocument();
+                doc.Load(sourceFile);
+                XmlNamespaceManager xnm = new XmlNamespaceManager(doc.NameTable);
+                xnm.AddNamespace("def", ExtNameSpace);
+
+                // Update Addin/Assembly node
+                XmlNode node = doc.SelectSingleNode("/def:Extensibility/def:Addin/def:Assembly", xnm);
+                if (node != null)
+                {
+                    node.InnerText = Path.Combine(assemblyPath, addinAssemblyFileName);
+                }
+
+                // Update Addin/Assembly node
+                XmlNodeList versionNodes = doc.SelectNodes("/def:Extensibility/def:HostApplication/def:Version", xnm);
+                if (versionNodes != null)
+                {
+                    for (int i = 0; i < versionNodes.Count; i++)
+                    {
+                        if (versionNodes[i] != null)
+                        {
+                            versionNodes[i].InnerText = version;
+                        }
+                    }
+                }
+
+                // Update ToolsOptionsPage/Assembly node
+                node = doc.SelectSingleNode("/def:Extensibility/def:ToolsOptionsPage/def:Category/def:SubCategory/def:Assembly", xnm);
+                if (node != null)
+                {
+                    node.InnerText = Path.Combine(assemblyPath, addinAssemblyFileName);
+                }
+
+                doc.Save(sourceFile);
+
+                string targetFile = Path.Combine(addinTargetPath, addinControlFileName);
+                File.Copy(sourceFile, targetFile, true);
+
+                // Save AddinPath to be used in Uninstall or Rollback
+                savedState.Add("AddinPath", targetFile);
             }
             catch (Exception ex)
             {
