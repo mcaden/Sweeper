@@ -48,7 +48,7 @@
                 {
                     Debug.WriteLine("Formatting Document: " + projectItem.Name);
                     ideWindow.SetFocus();
-                    ideWindow.DTE.ExecuteCommand("Edit.FormatDocument", String.Empty);
+                    ideWindow.DTE.ExecuteCommand("Edit.FormatDocument", string.Empty);
                 }
                 catch (Exception exc)
                 {

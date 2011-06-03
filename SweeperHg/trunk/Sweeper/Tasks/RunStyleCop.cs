@@ -48,7 +48,7 @@
                 {
                     Debug.WriteLine("Running StyleCop: " + projectItem.Name);
                     ideWindow.SetFocus();
-                    ideWindow.DTE.ExecuteCommand("Tools.RunStyleCop", String.Empty);
+                    ideWindow.DTE.ExecuteCommand("Tools.RunStyleCop", string.Empty);
                 }
                 catch (Exception exc)
                 {

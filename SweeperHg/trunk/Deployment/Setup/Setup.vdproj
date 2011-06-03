@@ -124,6 +124,12 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_0177BC1F5CAE988866FDA2F7E41CE1C5"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_D6027931EF6B6BF017C4C2201A8A43E5"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -149,12 +155,6 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_70ECCD5324D74D5B83358413414EC22A"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_0177BC1F5CAE988866FDA2F7E41CE1C5"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -308,7 +308,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.0.1.37521, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.1.0.42971, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_0177BC1F5CAE988866FDA2F7E41CE1C5"
@@ -655,14 +655,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Sweeper"
-        "ProductCode" = "8:{0518AE09-014E-40F0-A735-D081ACDD5899}"
-        "PackageCode" = "8:{24D70C19-AFD4-4335-A01B-067D05578B88}"
+        "ProductCode" = "8:{5A777E36-EE55-4A20-A37D-F8BE2B42AD7D}"
+        "PackageCode" = "8:{EB6B466F-2D4D-437E-BB65-262D06521148}"
         "UpgradeCode" = "8:{73BF1AB7-3E54-4AB2-8CF7-089CF7B8145E}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.1"
+        "ProductVersion" = "8:0.2"
         "Manufacturer" = "8:Katalyst Studios"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://amoore.katalyststudios.com"

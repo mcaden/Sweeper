@@ -87,7 +87,7 @@
                     macroWatch.Start();
 
                     ideWindow.SetFocus();
-                    ideWindow.DTE.ExecuteCommand("Edit.RemoveAndSort", String.Empty);
+                    ideWindow.DTE.ExecuteCommand("Edit.RemoveAndSort", string.Empty);
 
                     macroWatch.Stop();
                     if (macroWatch.ElapsedMilliseconds > 1000)

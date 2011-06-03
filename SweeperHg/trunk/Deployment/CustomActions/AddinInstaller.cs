@@ -17,7 +17,17 @@
         /// <summary>
         /// Namespace used in the .addin configuration file.
         /// </summary>         
-        private const string ExtNameSpace = "http:// schemas.microsoft.com/AutomationExtensibility";
+        private const string ExtNameSpace = "http://schemas.microsoft.com/AutomationExtensibility";
+
+        /// <summary>
+        /// Install state for visual studio 2008.
+        /// </summary>
+        private const string VisualStudio2008State = "AddinPath2008";
+
+        /// <summary>
+        /// Install state for visual studio 2010.
+        /// </summary>
+        private const string VisualStudio2010State = "AddinPath2010";
 
         /// <summary>
         /// Initializes a new instance of the AddinInstaller class.
@@ -44,13 +54,13 @@
             // Parameters required to pass in from installer
             string productName = this.Context.Parameters["ProductName"];
             string assemblyName = this.Context.Parameters["AssemblyName"];
-
+            System.Windows.Forms.MessageBox.Show("Debug here");
             if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008")))
             {
                 // Setup .addin path and assembly path
                 string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008\Addins");
 
-                SetupAddin(savedState, assemblyName, addinTargetPath, "9.0");
+                SetupAddin(savedState, assemblyName, addinTargetPath, "9.0", VisualStudio2008State);
             }
 
             if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2010")))
@@ -58,7 +68,7 @@
                 // Setup .addin path and assembly path
                 string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2010\Addins");
 
-                SetupAddin(savedState, assemblyName, addinTargetPath, "10.0");
+                SetupAddin(savedState, assemblyName, addinTargetPath, "10.0", VisualStudio2010State);
             }
         }
 
@@ -72,10 +82,16 @@
 
             try
             {
-                string fileName = (string)savedState["AddinPath"];
-                if (File.Exists(fileName))
+                string fileNameVS2008 = (string)savedState[VisualStudio2008State];
+                if (File.Exists(fileNameVS2008))
                 {
-                    File.Delete(fileName);
+                    File.Delete(fileNameVS2008);
+                }
+
+                string fileNameVS2010 = (string)savedState[VisualStudio2010State];
+                if (File.Exists(fileNameVS2010))
+                {
+                    File.Delete(fileNameVS2010);
                 }
             }
             catch (Exception ex)
@@ -94,10 +110,16 @@
 
             try
             {
-                string fileName = (string)savedState["AddinPath"];
-                if (File.Exists(fileName))
+                string fileNameVS2008 = (string)savedState[VisualStudio2008State];
+                if (File.Exists(fileNameVS2008))
                 {
-                    File.Delete(fileName);
+                    File.Delete(fileNameVS2008);
+                }
+
+                string fileNameVS2010 = (string)savedState[VisualStudio2010State];
+                if (File.Exists(fileNameVS2010))
+                {
+                    File.Delete(fileNameVS2010);
                 }
             }
             catch (Exception ex)
@@ -113,7 +135,8 @@
         /// <param name="assemblyName">The name of the assembly</param>
         /// <param name="addinTargetPath">The path to the assembly</param>
         /// <param name="version">The version number of visual studio.  9.0 is VS 2008, 10.0 is VS 2010</param>
-        private static void SetupAddin(IDictionary savedState, string assemblyName, string addinTargetPath, string version)
+        /// <param name="state">The name of the saved state.</param>
+        private static void SetupAddin(IDictionary savedState, string assemblyName, string addinTargetPath, string version, string state)
         {
             string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string addinControlFileName = assemblyName + ".Addin";
@@ -166,7 +189,7 @@
                 File.Copy(sourceFile, targetFile, true);
 
                 // Save AddinPath to be used in Uninstall or Rollback
-                savedState.Add("AddinPath", targetFile);
+                savedState.Add(state, targetFile);
             }
             catch (Exception ex)
             {

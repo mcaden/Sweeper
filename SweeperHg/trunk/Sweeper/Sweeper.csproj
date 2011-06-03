@@ -64,6 +64,7 @@
     <Compile Include="Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Tasks\AddCopyright.cs" />
     <Compile Include="Tasks\CommentSpacing.cs" />
     <Compile Include="Tasks\RunGhostDoc.cs" />
     <Compile Include="Tasks\RunStyleCop.cs" />

@@ -79,7 +79,7 @@
                 {
                     checkPoint.LineDown(2);
                     checkPoint.StartOfLine();
-                    if (blockPoint.GetText(checkPoint).Trim() == String.Empty)
+                    if (blockPoint.GetText(checkPoint).Trim() == string.Empty)
                     {
                         checkPoint.LineUp(1);
                         checkPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
@@ -107,7 +107,7 @@
                 {
                     checkPoint.LineUp(2);
                     checkPoint.EndOfLine();
-                    if (startPoint.GetText(checkPoint).Trim() == String.Empty)
+                    if (startPoint.GetText(checkPoint).Trim() == string.Empty)
                     {
                         checkPoint.LineDown(1);
                         checkPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);

@@ -57,7 +57,7 @@
                         bool previousBlank = false;
                         EditPoint previousCheckPoint = objEditPoint.CreateEditPoint();
                         previousCheckPoint.LineUp(1);
-                        if (previousCheckPoint.GetText(objEditPoint).Trim() == String.Empty)
+                        if (previousCheckPoint.GetText(objEditPoint).Trim() == string.Empty)
                         {
                             previousBlank = true;
                         }
@@ -102,7 +102,7 @@
                         {
                             EditPoint endComment = commentPoint.CreateEditPoint();
                             endComment.EndOfLine();
-                            if (commentPoint.GetText(endComment).Trim() == String.Empty)
+                            if (commentPoint.GetText(endComment).Trim() == string.Empty)
                             {
                                 objEditPoint.Delete(endComment);
                             }
@@ -116,7 +116,7 @@
                         objEditPoint.StartOfLine();
                         commentPoint = objEditPoint.CreateEditPoint();
                         commentPoint.EndOfLine();
-                        if (objEditPoint.GetText(commentPoint).Trim() == String.Empty)
+                        if (objEditPoint.GetText(commentPoint).Trim() == string.Empty)
                         {
                             objEditPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
                             if (previousBlank)

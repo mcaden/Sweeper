@@ -76,7 +76,7 @@
             startPoint = document.CreateEditPoint(document.Selection.ActivePoint);
             document.Selection.MoveToPoint(startPoint, true);
             window.SetFocus();
-            window.DTE.ExecuteCommand("Tools.Submain.GhostDoc.DocumentThis", String.Empty);
+            window.DTE.ExecuteCommand("Tools.Submain.GhostDoc.DocumentThis", string.Empty);
         }
 
         /// <summary>

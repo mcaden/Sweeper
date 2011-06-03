@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("CustomActions")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Custom Install Actions for installing Sweeper from a central location")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("CustomActions")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2010")]
+[assembly: AssemblyCompany("Katalyst Studios")]
+[assembly: AssemblyProduct("Sweeper")]
+[assembly: AssemblyCopyright("Copyright © 2010-2011 Katalyst Studios")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
