@@ -45,7 +45,7 @@
             {
                 Debug.WriteLine("Running StyleCop (Rescan All) on Solution");
                 ideWindow.SetFocus();
-                ideWindow.DTE.ExecuteCommand("Tools.RunStyleCopRescanAll", String.Empty);
+                ideWindow.DTE.ExecuteCommand("Tools.RunStyleCopRescanAll", string.Empty);
             }
             catch (Exception exc)
             {
