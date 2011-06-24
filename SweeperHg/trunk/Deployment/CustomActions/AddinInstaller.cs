@@ -54,7 +54,7 @@
             // Parameters required to pass in from installer
             string productName = this.Context.Parameters["ProductName"];
             string assemblyName = this.Context.Parameters["AssemblyName"];
-            System.Windows.Forms.MessageBox.Show("Debug here");
+
             if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2008")))
             {
                 // Setup .addin path and assembly path

@@ -55,75 +55,88 @@
                     while (objEditPoint.FindPattern("//", (int)vsFindOptions.vsFindOptionsMatchCase, ref commentPoint, ref trs))
                     {
                         bool previousBlank = false;
-                        EditPoint previousCheckPoint = objEditPoint.CreateEditPoint();
-                        previousCheckPoint.LineUp(1);
-                        if (previousCheckPoint.GetText(objEditPoint).Trim() == string.Empty)
+                        bool isNotInline = true;
+                        EditPoint beginningLineEditPoint = objEditPoint.CreateEditPoint();
+                        beginningLineEditPoint.StartOfLine();
+                        if (beginningLineEditPoint.GetText(objEditPoint).Trim() != string.Empty)
                         {
-                            previousBlank = true;
+                            isNotInline = false;
                         }
 
-                        commentPoint.CharRight(1);
-                        string comment = objEditPoint.GetText(commentPoint);
-                        while (!comment.EndsWith(" ") && !commentPoint.AtEndOfLine)
+                        if (isNotInline)
                         {
-                            if (comment.EndsWith("/"))
+                            EditPoint previousCheckPoint = objEditPoint.CreateEditPoint();
+                            previousCheckPoint.LineUp(1);
+                            if (previousCheckPoint.GetText(objEditPoint).Trim() == string.Empty)
                             {
-                                commentPoint.CharRight(1);
+                                previousBlank = true;
                             }
-                            else
+
+                            commentPoint.CharRight(1);
+                            string comment = objEditPoint.GetText(commentPoint);
+                            while (!comment.EndsWith(" ") && !commentPoint.AtEndOfLine)
+                            {
+                                if (comment.EndsWith("/"))
+                                {
+                                    commentPoint.CharRight(1);
+                                }
+                                else
+                                {
+                                    commentPoint.CharLeft(1);
+                                    commentPoint.Insert(" ");
+                                }
+
+                                comment = objEditPoint.GetText(commentPoint);
+                            }
+
+                            commentPoint.CharRight(1);
+                            comment = objEditPoint.GetText(commentPoint);
+                            if (comment.EndsWith("  "))
                             {
                                 commentPoint.CharLeft(1);
+                                commentPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsHorizontal);
                                 commentPoint.Insert(" ");
                             }
 
-                            comment = objEditPoint.GetText(commentPoint);
-                        }
-
-                        commentPoint.CharRight(1);
-                        comment = objEditPoint.GetText(commentPoint);
-                        if (comment.EndsWith("  "))
-                        {
-                            commentPoint.CharLeft(1);
-                            commentPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsHorizontal);
-                            commentPoint.Insert(" ");
-                        }
-
-                        if (commentPoint.Line > objEditPoint.Line)
-                        {
-                            commentPoint.LineUp(1);
-                            commentPoint.EndOfLine();
-                        }
-
-                        if (commentPoint.AtEndOfLine)
-                        {
-                            objEditPoint.Delete(commentPoint);
-                        }
-                        else
-                        {
-                            EditPoint endComment = commentPoint.CreateEditPoint();
-                            endComment.EndOfLine();
-                            if (commentPoint.GetText(endComment).Trim() == string.Empty)
+                            if (commentPoint.Line > objEditPoint.Line)
                             {
-                                objEditPoint.Delete(endComment);
+                                commentPoint.LineUp(1);
+                                commentPoint.EndOfLine();
+                            }
+
+                            if (commentPoint.AtEndOfLine)
+                            {
+                                objEditPoint.Delete(commentPoint);
                             }
                             else
                             {
-                                objEditPoint.LineDown(1);
-                                previousBlank = false;
+                                EditPoint endComment = commentPoint.CreateEditPoint();
+                                endComment.EndOfLine();
+                                if (commentPoint.GetText(endComment).Trim() == string.Empty)
+                                {
+                                    objEditPoint.Delete(endComment);
+                                }
+                                else
+                                {
+                                    objEditPoint.LineDown(1);
+                                    previousBlank = false;
+                                }
+                            }
+
+                            objEditPoint.StartOfLine();
+                            commentPoint = objEditPoint.CreateEditPoint();
+                            commentPoint.EndOfLine();
+                            if (objEditPoint.GetText(commentPoint).Trim() == string.Empty)
+                            {
+                                objEditPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+                                if (previousBlank)
+                                {
+                                    objEditPoint.Insert("\r\n");
+                                }
                             }
                         }
 
-                        objEditPoint.StartOfLine();
-                        commentPoint = objEditPoint.CreateEditPoint();
-                        commentPoint.EndOfLine();
-                        if (objEditPoint.GetText(commentPoint).Trim() == string.Empty)
-                        {
-                            objEditPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-                            if (previousBlank)
-                            {
-                                objEditPoint.Insert("\r\n");
-                            }
-                        }
+                        objEditPoint.EndOfLine();
                     }
                 }
                 catch (Exception exc)

@@ -11,6 +11,7 @@
     /// </summary>
     public class SortElementsWithinClass : StyleTaskBase
     {
+        private readonly Dictionary<vsCMAccess, ElementAccess> accessLookup = new Dictionary<vsCMAccess, ElementAccess>();
         /// <summary>
         /// Initializes a new instance of the SortElementsWithinClass class.
         /// </summary>
@@ -20,13 +21,41 @@
             TaskDescription = "Sorts Elements according to their type and access level to fit standard.";
             Debug.WriteLine("Task: " + TaskName + " created.");
             IsTemporarilyDisabled = false;
+
+            accessLookup.Add(vsCMAccess.vsCMAccessPrivate, ElementAccess.PRIVATE);
+            accessLookup.Add(vsCMAccess.vsCMAccessProtected, ElementAccess.PROTECTED);
+            accessLookup.Add(vsCMAccess.vsCMAccessProject, ElementAccess.INTERNAL);
+            accessLookup.Add(vsCMAccess.vsCMAccessPublic, ElementAccess.PUBLIC);
+        }
+
+        public enum ElementAccess : int
+        {
+            /// <summary>
+            /// Public access
+            /// </summary>
+            PUBLIC,
+
+            /// <summary>
+            /// Internal to project
+            /// </summary>
+            INTERNAL,
+
+            /// <summary>
+            /// Protected access
+            /// </summary>
+            PROTECTED,
+
+            /// <summary>
+            /// Private access
+            /// </summary>
+            PRIVATE
         }
 
         /// <summary>
         /// Class priority enums to sort elements by their type.  
         /// Built-in type enums are not sufficient for this because they span multiple types.
         /// </summary>
-        public enum ClassPlacement : int
+        public enum ElementType : int
         {
             /// <summary>
             /// A class field.
@@ -199,13 +228,14 @@
                     EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
                     EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
                     bool skipElement = false;
+                    
                     switch (element.Kind)
                     {
                         case vsCMElement.vsCMElementVariable:
                             CodeVariable variable = element as CodeVariable;
                             if (variable != null)
                             {
-                                currentBlock = new CodeBlock(variable.Access, ClassPlacement.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[variable.Access], ElementType.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -220,15 +250,15 @@
                             {
                                 if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
                                 {
-                                    currentBlock = new CodeBlock(function.Access, ClassPlacement.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                    currentBlock = new CodeBlock(accessLookup[function.Access], ElementType.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint));
                                 }
                                 else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
                                 {
-                                    currentBlock = new CodeBlock(function.Access, ClassPlacement.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                    currentBlock = new CodeBlock(accessLookup[function.Access], ElementType.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint));
                                 }
                                 else
                                 {
-                                    currentBlock = new CodeBlock(function.Access, ClassPlacement.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                    currentBlock = new CodeBlock(accessLookup[function.Access], ElementType.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint));
                                 }
                             }
                             else
@@ -241,7 +271,7 @@
                             CodeDelegate delegateElement = element as CodeDelegate;
                             if (delegateElement != null)
                             {
-                                currentBlock = new CodeBlock(delegateElement.Access, ClassPlacement.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[delegateElement.Access], ElementType.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -250,13 +280,13 @@
 
                             break;
                         case vsCMElement.vsCMElementEvent:
-                            currentBlock = new CodeBlock(vsCMAccess.vsCMAccessPublic, ClassPlacement.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint));
+                            currentBlock = new CodeBlock(accessLookup[vsCMAccess.vsCMAccessPublic], ElementType.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint));
                             break;
                         case vsCMElement.vsCMElementEnum:
                             CodeEnum enumElement = element as CodeEnum;
                             if (enumElement != null)
                             {
-                                currentBlock = new CodeBlock(enumElement.Access, ClassPlacement.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[enumElement.Access], ElementType.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -268,7 +298,7 @@
                             CodeInterface interfaceElement = element as CodeInterface;
                             if (interfaceElement != null)
                             {
-                                currentBlock = new CodeBlock(interfaceElement.Access, ClassPlacement.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[interfaceElement.Access], ElementType.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -280,7 +310,7 @@
                             CodeProperty propertyElement = element as CodeProperty;
                             if (propertyElement != null)
                             {
-                                currentBlock = new CodeBlock(propertyElement.Access, ClassPlacement.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[propertyElement.Access], ElementType.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -292,7 +322,7 @@
                             CodeStruct structElement = element as CodeStruct;
                             if (structElement != null)
                             {
-                                currentBlock = new CodeBlock(structElement.Access, ClassPlacement.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[structElement.Access], ElementType.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -304,7 +334,7 @@
                             CodeClass classElement = element as CodeClass;
                             if (classElement != null)
                             {
-                                currentBlock = new CodeBlock(classElement.Access, ClassPlacement.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint));
+                                currentBlock = new CodeBlock(accessLookup[classElement.Access], ElementType.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint));
                             }
                             else
                             {
@@ -332,17 +362,15 @@
                             }
                             else
                             {
-                                if (currentBlock.Access.CompareTo(lastBlock.Access) > 0)
+                                if (lastBlock.Access.CompareTo(currentBlock.Access) > 0)
                                 {
                                     Debug.WriteLine(currentBlock.Placement + " - " + currentBlock.Access + " belongs before " + lastBlock.Placement + " - " + lastBlock.Access + "; Sorting Required.");
                                     return false;
                                 }
                             }
                         }
-                        else
-                        {
-                            lastBlock = currentBlock;
-                        }
+                            
+                        lastBlock = currentBlock;
                     }
                 }
             }
@@ -388,7 +416,7 @@
                                 CodeVariable variable = element as CodeVariable;
                                 if (variable != null)
                                 {
-                                    blocks.Add(new CodeBlock(variable.Access, ClassPlacement.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[variable.Access], ElementType.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -401,17 +429,18 @@
                                 CodeFunction function = element as CodeFunction;
                                 if (function != null)
                                 {
+                                    Debug.WriteLine(string.Format("Access: {0} Value: {1}", function.Access, (int)function.Access));
                                     if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
                                     {
-                                        blocks.Add(new CodeBlock(function.Access, ClassPlacement.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                        blocks.Add(new CodeBlock(accessLookup[function.Access], ElementType.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                     }
                                     else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
                                     {
-                                        blocks.Add(new CodeBlock(function.Access, ClassPlacement.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                        blocks.Add(new CodeBlock(accessLookup[function.Access], ElementType.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                     }
                                     else
                                     {
-                                        blocks.Add(new CodeBlock(function.Access, ClassPlacement.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                        blocks.Add(new CodeBlock(accessLookup[function.Access], ElementType.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                     }
                                 }
                                 else
@@ -424,7 +453,7 @@
                                 CodeDelegate delegateElement = element as CodeDelegate;
                                 if (delegateElement != null)
                                 {
-                                    blocks.Add(new CodeBlock(delegateElement.Access, ClassPlacement.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[delegateElement.Access], ElementType.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -433,13 +462,13 @@
 
                                 break;
                             case vsCMElement.vsCMElementEvent:
-                                blocks.Add(new CodeBlock(vsCMAccess.vsCMAccessPublic, ClassPlacement.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                blocks.Add(new CodeBlock(accessLookup[vsCMAccess.vsCMAccessPublic], ElementType.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 break;
                             case vsCMElement.vsCMElementEnum:
                                 CodeEnum enumElement = element as CodeEnum;
                                 if (enumElement != null)
                                 {
-                                    blocks.Add(new CodeBlock(enumElement.Access, ClassPlacement.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[enumElement.Access], ElementType.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -451,7 +480,7 @@
                                 CodeInterface interfaceElement = element as CodeInterface;
                                 if (interfaceElement != null)
                                 {
-                                    blocks.Add(new CodeBlock(interfaceElement.Access, ClassPlacement.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[interfaceElement.Access], ElementType.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -463,7 +492,7 @@
                                 CodeProperty propertyElement = element as CodeProperty;
                                 if (propertyElement != null)
                                 {
-                                    blocks.Add(new CodeBlock(propertyElement.Access, ClassPlacement.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[propertyElement.Access], ElementType.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -475,7 +504,7 @@
                                 CodeStruct structElement = element as CodeStruct;
                                 if (structElement != null)
                                 {
-                                    blocks.Add(new CodeBlock(structElement.Access, ClassPlacement.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[structElement.Access], ElementType.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -487,7 +516,7 @@
                                 CodeClass classElement = element as CodeClass;
                                 if (classElement != null)
                                 {
-                                    blocks.Add(new CodeBlock(classElement.Access, ClassPlacement.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint)));
+                                    blocks.Add(new CodeBlock(accessLookup[classElement.Access], ElementType.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint)));
                                 }
                                 else
                                 {
@@ -614,7 +643,7 @@
             /// <param name="access">The block's access level.</param>
             /// <param name="placement">The block's placement.</param>
             /// <param name="body">The body of the code block.</param>
-            public CodeBlock(vsCMAccess access, ClassPlacement placement, string body)
+            public CodeBlock(ElementAccess access, ElementType placement, string body)
             {
                 Access = access;
                 Body = body;
@@ -624,7 +653,7 @@
             /// <summary>
             /// Gets the block's access level.
             /// </summary>
-            public vsCMAccess Access { get; private set; }
+            public ElementAccess Access { get; private set; }
 
             /// <summary>
             /// Gets the block's body text.
@@ -634,7 +663,7 @@
             /// <summary>
             /// Gets the block's placement level 
             /// </summary>
-            public ClassPlacement Placement { get; private set; }
+            public ElementType Placement { get; private set; }
         }
     }
 }
