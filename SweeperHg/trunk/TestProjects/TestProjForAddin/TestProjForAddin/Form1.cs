@@ -41,6 +41,8 @@ namespace test2
         //test
         //
 
+        private string myUrl = "http://sweeper.codeplex.com";
+
         /// <summary>
         /// Is a monkey...
         /// </summary>
