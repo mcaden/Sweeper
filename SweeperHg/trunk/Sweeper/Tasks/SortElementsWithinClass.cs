@@ -5,13 +5,18 @@
     using System.Diagnostics;
     using System.Windows.Forms;
     using EnvDTE;
+    using EnvDTE80;
 
     /// <summary>
     /// Sorts Elements according to their type and access level to fit standard.
     /// </summary>
     public class SortElementsWithinClass : StyleTaskBase
     {
+        /// <summary>
+        /// Lookup table between ElementAccess and visual studio's access enum
+        /// </summary>
         private readonly Dictionary<vsCMAccess, ElementAccess> accessLookup = new Dictionary<vsCMAccess, ElementAccess>();
+
         /// <summary>
         /// Initializes a new instance of the SortElementsWithinClass class.
         /// </summary>
@@ -28,12 +33,45 @@
             accessLookup.Add(vsCMAccess.vsCMAccessPublic, ElementAccess.PUBLIC);
         }
 
+        /// <summary>
+        /// An element's access type used to define order
+        /// </summary>
         public enum ElementAccess : int
         {
             /// <summary>
             /// Public access
             /// </summary>
+            PUBLIC_CONSTANT_STATIC,
+
+            /// <summary>
+            /// Public access
+            /// </summary>
+            PUBLIC_CONSTANT,
+
+            /// <summary>
+            /// Public access
+            /// </summary>
+            PUBLIC_STATIC,
+
+            /// <summary>
+            /// Public access
+            /// </summary>
             PUBLIC,
+
+            /// <summary>
+            /// Internal to project
+            /// </summary>
+            INTERNAL_CONSTANT_STATIC,
+
+            /// <summary>
+            /// Internal to project
+            /// </summary>
+            INTERNAL_CONSTANT,
+
+            /// <summary>
+            /// Internal to project
+            /// </summary>
+            INTERNAL_STATIC,
 
             /// <summary>
             /// Internal to project
@@ -43,7 +81,37 @@
             /// <summary>
             /// Protected access
             /// </summary>
+            PROTECTED_CONSTANT_STATIC,
+
+            /// <summary>
+            /// Protected access
+            /// </summary>
+            PROTECTED_CONSTANT,
+
+            /// <summary>
+            /// Protected access
+            /// </summary>
+            PROTECTED_STATIC,
+
+            /// <summary>
+            /// Protected access
+            /// </summary>
             PROTECTED,
+
+            /// <summary>
+            /// Private access
+            /// </summary>
+            PRIVATE_CONSTANT_STATIC,
+
+            /// <summary>
+            /// Private access
+            /// </summary>
+            PRIVATE_CONSTANT,
+
+            /// <summary>
+            /// Private access
+            /// </summary>
+            PRIVATE_STATIC,
 
             /// <summary>
             /// Private access
@@ -78,7 +146,7 @@
             DELEGATE,
 
             /// <summary>
-            /// An class' event.
+            /// A class' event.
             /// </summary>
             EVENT,
 
@@ -227,128 +295,10 @@
                     CodeElement element = codeElement.Children.Item(i);
                     EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
                     EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
-                    bool skipElement = false;
-                    
-                    switch (element.Kind)
-                    {
-                        case vsCMElement.vsCMElementVariable:
-                            CodeVariable variable = element as CodeVariable;
-                            if (variable != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[variable.Access], ElementType.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeVariable " + element.Name + " null");
-                            }
 
-                            break;
-                        case vsCMElement.vsCMElementFunction:
-                            // method, constructor, or finalizer
-                            CodeFunction function = element as CodeFunction;
-                            if (function != null)
-                            {
-                                if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
-                                {
-                                    currentBlock = new CodeBlock(accessLookup[function.Access], ElementType.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint));
-                                }
-                                else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
-                                {
-                                    currentBlock = new CodeBlock(accessLookup[function.Access], ElementType.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint));
-                                }
-                                else
-                                {
-                                    currentBlock = new CodeBlock(accessLookup[function.Access], ElementType.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint));
-                                }
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeFunction " + element.Name + " null");
-                            }
+                    currentBlock = EvaluateBlock(codeElement, element, ref newStartPoint);
 
-                            break;
-                        case vsCMElement.vsCMElementDelegate:
-                            CodeDelegate delegateElement = element as CodeDelegate;
-                            if (delegateElement != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[delegateElement.Access], ElementType.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeDelegate " + element.Name + " null");
-                            }
-
-                            break;
-                        case vsCMElement.vsCMElementEvent:
-                            currentBlock = new CodeBlock(accessLookup[vsCMAccess.vsCMAccessPublic], ElementType.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            break;
-                        case vsCMElement.vsCMElementEnum:
-                            CodeEnum enumElement = element as CodeEnum;
-                            if (enumElement != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[enumElement.Access], ElementType.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeEnum " + element.Name + " null");
-                            }
-
-                            break;
-                        case vsCMElement.vsCMElementInterface:
-                            CodeInterface interfaceElement = element as CodeInterface;
-                            if (interfaceElement != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[interfaceElement.Access], ElementType.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeInterface " + element.Name + " null");
-                            }
-
-                            break;
-                        case vsCMElement.vsCMElementProperty:
-                            CodeProperty propertyElement = element as CodeProperty;
-                            if (propertyElement != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[propertyElement.Access], ElementType.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeProperty " + element.Name + " null");
-                            }
-
-                            break;
-                        case vsCMElement.vsCMElementStruct:
-                            CodeStruct structElement = element as CodeStruct;
-                            if (structElement != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[structElement.Access], ElementType.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeStruct " + element.Name + " null");
-                            }
-
-                            break;
-                        case vsCMElement.vsCMElementClass:
-                            CodeClass classElement = element as CodeClass;
-                            if (classElement != null)
-                            {
-                                currentBlock = new CodeBlock(accessLookup[classElement.Access], ElementType.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint));
-                            }
-                            else
-                            {
-                                Debug.WriteLine("CodeStruct " + element.Name + " null");
-                            }
-
-                            break;
-                        default:
-                            Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                            skipElement = true;
-                            break;
-                    }
-
-                    if (!skipElement)
+                    if (currentBlock != null)
                     {
                         if (lastBlock != null)
                         {
@@ -369,7 +319,7 @@
                                 }
                             }
                         }
-                            
+
                         lastBlock = currentBlock;
                     }
                 }
@@ -382,6 +332,156 @@
 
             Debug.WriteLine("Class is already sorted, returning");
             return true;
+        }
+
+        /// <summary>
+        /// Evaluates an element into a codeblock
+        /// </summary>
+        /// <param name="parentElement">The parent element, containing the given element</param>
+        /// <param name="element">The element to evaluate</param>
+        /// <param name="newStartPoint">The starting point for the element</param>
+        /// <returns>A CodeBlock derived from the Element with appropriate placement and access set</returns>
+        private CodeBlock EvaluateBlock(CodeElement parentElement, CodeElement element, ref EditPoint newStartPoint)
+        {
+            CodeBlock currentBlock = null;
+            switch (element.Kind)
+            {
+                case vsCMElement.vsCMElementVariable:
+                    CodeVariable variable = element as CodeVariable;
+                    if (variable != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(variable.Access, variable.IsConstant, variable.IsShared), ElementType.FIELD, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeVariable " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementFunction:
+                    // method, constructor, or finalizer
+                    CodeFunction function = element as CodeFunction;
+                    if (function != null)
+                    {
+                        if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
+                        {
+                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.CONSTRUCTOR, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        }
+                        else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
+                        {
+                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.FINALIZER, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        }
+                        else
+                        {
+                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.METHOD, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeFunction " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementDelegate:
+                    CodeDelegate delegateElement = element as CodeDelegate;
+                    if (delegateElement != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(delegateElement.Access, false), ElementType.DELEGATE, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeDelegate " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementEvent:
+                    CodeEvent eventElement = element as CodeEvent;
+                    if (eventElement != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(eventElement.Access, eventElement.IsShared), ElementType.EVENT, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeEvent " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementEnum:
+                    CodeEnum enumElement = element as CodeEnum;
+                    if (enumElement != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(enumElement.Access, false), ElementType.ENUM, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeEnum " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementInterface:
+                    CodeInterface interfaceElement = element as CodeInterface;
+                    if (interfaceElement != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(interfaceElement.Access, false), ElementType.INTERFACE, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeInterface " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementProperty:
+                    CodeProperty propertyElement = element as CodeProperty;
+                    if (propertyElement != null)
+                    {
+                        bool isStatic = false;
+                        if (propertyElement.Getter != null)
+                        {
+                            isStatic = propertyElement.Getter.IsShared;
+                        }
+                        else if (propertyElement.Setter != null)
+                        {
+                            isStatic = propertyElement.Setter.IsShared;
+                        }
+
+                        currentBlock = new CodeBlock(EvaluateAccess(propertyElement.Access, isStatic), ElementType.PROPERTY, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeProperty " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementStruct:
+                    CodeStruct structElement = element as CodeStruct;
+                    if (structElement != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(structElement.Access, false), ElementType.STRUCT, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeStruct " + element.Name + " null");
+                    }
+
+                    break;
+                case vsCMElement.vsCMElementClass:
+                    CodeClass classElement = element as CodeClass;
+                    if (classElement != null)
+                    {
+                        currentBlock = new CodeBlock(EvaluateAccess(classElement.Access, false), ElementType.CLASS, GetCodeBlockText(parentElement, element, out newStartPoint));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("CodeStruct " + element.Name + " null");
+                    }
+
+                    break;
+                default:
+                    Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
+                    break;
+            }
+
+            return currentBlock;
         }
 
         /// <summary>
@@ -408,130 +508,11 @@
                         CodeElement element = codeElement.Children.Item(i);
                         EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
                         EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
-                        bool skipElement = false;
+                        CodeBlock block = EvaluateBlock(codeElement, element, ref newStartPoint);
 
-                        switch (element.Kind)
+                        if (block != null)
                         {
-                            case vsCMElement.vsCMElementVariable:
-                                CodeVariable variable = element as CodeVariable;
-                                if (variable != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[variable.Access], ElementType.FIELD, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeVariable " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementFunction:
-                                // method, constructor, or finalizer
-                                CodeFunction function = element as CodeFunction;
-                                if (function != null)
-                                {
-                                    Debug.WriteLine(string.Format("Access: {0} Value: {1}", function.Access, (int)function.Access));
-                                    if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
-                                    {
-                                        blocks.Add(new CodeBlock(accessLookup[function.Access], ElementType.CONSTRUCTOR, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                    }
-                                    else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
-                                    {
-                                        blocks.Add(new CodeBlock(accessLookup[function.Access], ElementType.FINALIZER, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                    }
-                                    else
-                                    {
-                                        blocks.Add(new CodeBlock(accessLookup[function.Access], ElementType.METHOD, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeFunction " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementDelegate:
-                                CodeDelegate delegateElement = element as CodeDelegate;
-                                if (delegateElement != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[delegateElement.Access], ElementType.DELEGATE, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeDelegate " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementEvent:
-                                blocks.Add(new CodeBlock(accessLookup[vsCMAccess.vsCMAccessPublic], ElementType.EVENT, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                break;
-                            case vsCMElement.vsCMElementEnum:
-                                CodeEnum enumElement = element as CodeEnum;
-                                if (enumElement != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[enumElement.Access], ElementType.ENUM, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeEnum " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementInterface:
-                                CodeInterface interfaceElement = element as CodeInterface;
-                                if (interfaceElement != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[interfaceElement.Access], ElementType.INTERFACE, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeInterface " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementProperty:
-                                CodeProperty propertyElement = element as CodeProperty;
-                                if (propertyElement != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[propertyElement.Access], ElementType.PROPERTY, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeProperty " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementStruct:
-                                CodeStruct structElement = element as CodeStruct;
-                                if (structElement != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[structElement.Access], ElementType.STRUCT, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeStruct " + element.Name + " null");
-                                }
-
-                                break;
-                            case vsCMElement.vsCMElementClass:
-                                CodeClass classElement = element as CodeClass;
-                                if (classElement != null)
-                                {
-                                    blocks.Add(new CodeBlock(accessLookup[classElement.Access], ElementType.CLASS, GetCodeBlockText(codeElement, element, out newStartPoint)));
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("CodeStruct " + element.Name + " null");
-                                }
-
-                                break;
-                            default:
-                                Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                                skipElement = true;
-                                break;
-                        }
-
-                        if (!skipElement)
-                        {
+                            blocks.Add(block);
                             newStartPoint.Delete(element.EndPoint);
                             newStartPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
 
@@ -580,6 +561,40 @@
                 startBackup.Insert(classBackup);
                 Debug.WriteLine("-- Class Reverted --");
             }
+        }
+
+        /// <summary>
+        /// Evaluates the appropriate access to use
+        /// </summary>
+        /// <param name="access">The visual studio access enum</param>
+        /// <param name="isConstant">Whether the element is constant</param>
+        /// <param name="isStatic">Whether the element is static</param>
+        /// <returns>The appropriate access used for ordering</returns>
+        private ElementAccess EvaluateAccess(vsCMAccess access, bool isConstant, bool isStatic)
+        {
+            ElementAccess elementAccess = accessLookup[access];
+            if (isConstant)
+            {
+                elementAccess = (ElementAccess)Enum.Parse(typeof(ElementAccess), elementAccess.ToString() + "_CONSTANT");
+            }
+
+            if (isStatic)
+            {
+                elementAccess = (ElementAccess)Enum.Parse(typeof(ElementAccess), elementAccess.ToString() + "_STATIC");
+            }
+
+            return elementAccess;
+        }
+
+        /// <summary>
+        /// Evaluates the appropriate access to use
+        /// </summary>
+        /// <param name="access">The visual studio access enum</param>
+        /// <param name="isStatic">Whether the element is static</param>
+        /// <returns>The appropriate access used for ordering</returns>
+        private ElementAccess EvaluateAccess(vsCMAccess access, bool isStatic)
+        {
+            return EvaluateAccess(access, false, isStatic);
         }
 
         /// <summary>
