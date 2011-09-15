@@ -245,10 +245,6 @@
                                     SortFunctionsWithinClass(element.Children.Item(j));
                                 }
                             }
-                            else
-                            {
-                                Debug.WriteLine("--" + element.Children.Item(j).Kind);
-                            }
                         }
                     }
                 }
@@ -350,7 +346,7 @@
                     CodeVariable variable = element as CodeVariable;
                     if (variable != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(variable.Access, variable.IsConstant, variable.IsShared), ElementType.FIELD, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(variable.Access, variable.IsConstant, variable.IsShared), ElementType.FIELD, variable.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -360,20 +356,29 @@
                     break;
                 case vsCMElement.vsCMElementFunction:
                     // method, constructor, or finalizer
-                    CodeFunction function = element as CodeFunction;
+                    CodeFunction2 function = element as CodeFunction2;
                     if (function != null)
                     {
+                        int weight = 0;
+                        foreach (CodeParameter2 param in function.Parameters)
+                        {
+                            string paramKind = param.ParameterKind.ToString().Replace("vsCMParameterKind", string.Empty);
+                            paramKind = paramKind == "None" ? string.Empty : paramKind;
+                            paramKind = paramKind == "ParamArray" ? "params" : paramKind;
+                            weight += param.Type.AsString.Length + param.FullName.Length + paramKind.Length;
+                        }
+
                         if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
                         {
-                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.CONSTRUCTOR, GetCodeBlockText(parentElement, element, out newStartPoint));
+                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.CONSTRUCTOR, function.Name, GetCodeBlockText(parentElement, element, out newStartPoint), weight);
                         }
                         else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
                         {
-                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.FINALIZER, GetCodeBlockText(parentElement, element, out newStartPoint));
+                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.FINALIZER, function.Name, GetCodeBlockText(parentElement, element, out newStartPoint), weight);
                         }
                         else
                         {
-                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.METHOD, GetCodeBlockText(parentElement, element, out newStartPoint));
+                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.METHOD, function.Name, GetCodeBlockText(parentElement, element, out newStartPoint), weight);
                         }
                     }
                     else
@@ -386,7 +391,7 @@
                     CodeDelegate delegateElement = element as CodeDelegate;
                     if (delegateElement != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(delegateElement.Access, false), ElementType.DELEGATE, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(delegateElement.Access, false), ElementType.DELEGATE, delegateElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -398,7 +403,7 @@
                     CodeEvent eventElement = element as CodeEvent;
                     if (eventElement != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(eventElement.Access, eventElement.IsShared), ElementType.EVENT, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(eventElement.Access, eventElement.IsShared), ElementType.EVENT, eventElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -410,7 +415,7 @@
                     CodeEnum enumElement = element as CodeEnum;
                     if (enumElement != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(enumElement.Access, false), ElementType.ENUM, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(enumElement.Access, false), ElementType.ENUM, enumElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -422,7 +427,7 @@
                     CodeInterface interfaceElement = element as CodeInterface;
                     if (interfaceElement != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(interfaceElement.Access, false), ElementType.INTERFACE, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(interfaceElement.Access, false), ElementType.INTERFACE, interfaceElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -444,7 +449,7 @@
                             isStatic = propertyElement.Setter.IsShared;
                         }
 
-                        currentBlock = new CodeBlock(EvaluateAccess(propertyElement.Access, isStatic), ElementType.PROPERTY, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(propertyElement.Access, isStatic), ElementType.PROPERTY, propertyElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -456,7 +461,7 @@
                     CodeStruct structElement = element as CodeStruct;
                     if (structElement != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(structElement.Access, false), ElementType.STRUCT, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(structElement.Access, false), ElementType.STRUCT, structElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -468,7 +473,7 @@
                     CodeClass classElement = element as CodeClass;
                     if (classElement != null)
                     {
-                        currentBlock = new CodeBlock(EvaluateAccess(classElement.Access, false), ElementType.CLASS, GetCodeBlockText(parentElement, element, out newStartPoint));
+                        currentBlock = new CodeBlock(EvaluateAccess(classElement.Access, false), ElementType.CLASS, classElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
                     }
                     else
                     {
@@ -522,14 +527,25 @@
 
                     blocks.Sort(delegate(CodeBlock c1, CodeBlock c2)
                     {
+                        int comparison = 0;
                         if (c1.Placement != c2.Placement)
                         {
-                            return c1.Placement.CompareTo(c2.Placement);
+                            comparison = c1.Placement.CompareTo(c2.Placement);
+                        }
+                        else if (c1.Access != c2.Access)
+                        {
+                            comparison = c1.Access.CompareTo(c2.Access);
+                        }
+                        else if (c1.Name != c2.Name)
+                        {
+                            comparison = c1.Name.CompareTo(c2.Name);
                         }
                         else
                         {
-                            return c1.Access.CompareTo(c2.Access);
+                            comparison = c1.Weight.CompareTo(c2.Weight);
                         }
+
+                        return comparison;
                     });
 
                     classPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
@@ -657,12 +673,29 @@
             /// </summary>
             /// <param name="access">The block's access level.</param>
             /// <param name="placement">The block's placement.</param>
+            /// <param name="name">The name of the block</param>
             /// <param name="body">The body of the code block.</param>
-            public CodeBlock(ElementAccess access, ElementType placement, string body)
+            public CodeBlock(ElementAccess access, ElementType placement, string name, string body)
             {
+                Name = name;
                 Access = access;
                 Body = body;
                 Placement = placement;
+                Weight = 0;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the CodeBlock class.
+            /// </summary>
+            /// <param name="access">The block's access level.</param>
+            /// <param name="placement">The block's placement.</param>
+            /// <param name="name">The name of the block</param>
+            /// <param name="body">The body of the code block.</param>
+            /// <param name="weight">An additional sort component that only applies to items that are the same access and placement.</param>
+            public CodeBlock(ElementAccess access, ElementType placement, string name, string body, int weight)
+                : this(access, placement, name, body)
+            {
+                Weight = weight;
             }
 
             /// <summary>
@@ -674,6 +707,16 @@
             /// Gets the block's body text.
             /// </summary>
             public string Body { get; private set; }
+
+            /// <summary>
+            /// Gets the block's name.
+            /// </summary>
+            public string Name { get; private set; }
+
+            /// <summary>
+            /// Gets an additional sort component that only applies to items that are the same access and placement.
+            /// </summary>
+            public int Weight { get; private set; }
 
             /// <summary>
             /// Gets the block's placement level 
