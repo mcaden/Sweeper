@@ -120,18 +120,11 @@
                             }
                         }
 
-                        if (element.Kind == vsCMElement.vsCMElementProperty || element.Kind == vsCMElement.vsCMElementVariable)
+                        if (element.Kind == vsCMElement.vsCMElementProperty || element.Kind == vsCMElement.vsCMElementVariable || element.Kind == vsCMElement.vsCMElementEvent)
                         {
-                            if (element is CodeProperty)
-                            {
-                                CodeProperty property = element as CodeProperty;
-                                start = property.Attributes.Count > 0 ? property.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter).CreateEditPoint() : property.StartPoint.CreateEditPoint();
-                            }
-                            else
-                            {
-                                CodeVariable variable = element as CodeVariable;
-                                start = variable.Attributes.Count > 0 ? variable.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter).CreateEditPoint() : variable.StartPoint.CreateEditPoint();
-                            }
+                            CodeElements attributes = (CodeElements)codeElementTypes[element.Kind].InvokeMember("Attributes", BindingFlags.GetProperty, null, element, null);
+
+                            start = attributes.Count > 0 ? element.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter).CreateEditPoint() : element.StartPoint.CreateEditPoint();
                         }
                         else
                         {
