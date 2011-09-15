@@ -31,7 +31,19 @@ namespace TestProjForAddin
 
         public string PublicProperty { get; set; }
 
+
+        public void PublicFunction(out int p1, out int p2, ref int i, params int[] t)
+        {
+            p1 = 2;
+            p2 = 3;
+        }
+
         public void PublicFunction()
+        {
+        }
+
+
+        public void PublicFunction(string p1, string p2, Boolean test)
         {
         }
 
