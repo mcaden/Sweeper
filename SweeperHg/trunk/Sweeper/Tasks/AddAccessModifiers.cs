@@ -107,6 +107,8 @@
                         }
 
                         EditPoint start;
+                        EditPoint end;
+                        string declaration;
 
                         if (element.Kind == vsCMElement.vsCMElementFunction)
                         {
@@ -131,10 +133,10 @@
                             start = element.GetStartPoint(vsCMPart.vsCMPartHeader).CreateEditPoint();
                         }
 
-                        EditPoint end = start.CreateEditPoint();
+                        end = start.CreateEditPoint();
                         end.EndOfLine();
-                        string declaration = start.GetText(end);
-                        if (!declaration.StartsWith(codeAccessKeywords[access]))
+                        declaration = start.GetText(end);
+                        if (!declaration.StartsWith(codeAccessKeywords[access]) && !declaration.StartsWith("partial"))
                         {
                             object[] args = new object[1];
                             args.SetValue(access, 0);
