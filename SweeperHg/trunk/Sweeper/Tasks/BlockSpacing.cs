@@ -90,6 +90,7 @@
                 if (!restofStartText.StartsWith("get;"))
                 {
                     start.Insert(Environment.NewLine);
+                    start.SmartFormat(endStart);
                 }
             }
         }
@@ -126,6 +127,7 @@
             if (endOfBlockLine != string.Empty)
             {
                 endBlock.Insert(Environment.NewLine);
+                endBlock.SmartFormat(endOfEnd);
             }
 
             if (element.Kind != vsCMElement.vsCMElementImportStmt &&
@@ -167,6 +169,18 @@
 
                 foreach (CodeElement childElement in element.Children)
                 {
+                    if (childElement.Kind == vsCMElement.vsCMElementFunction)
+                    {
+                        EditPoint headerStart = childElement.GetStartPoint(vsCMPart.vsCMPartHeader).CreateEditPoint();
+                        EditPoint headerEnd = headerStart.CreateEditPoint();
+                        headerEnd.EndOfLine();
+                        string header = headerStart.GetText(headerEnd).Trim();
+                        if (header.StartsWith("partial"))
+                        {
+                            continue;
+                        }
+                    }
+
                     FormatBlockSpacing(childElement);
                 }
             }
