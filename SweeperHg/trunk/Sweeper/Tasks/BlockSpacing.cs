@@ -60,19 +60,13 @@
         /// <param name="element">The current code element</param>
         private void RemoveInternalBlockPadding(CodeElement element)
         {
-            if (element.Kind != vsCMElement.vsCMElementImportStmt &&
-                element.Kind != vsCMElement.vsCMElementVariable &&
-                element.Kind != vsCMElement.vsCMElementEvent &&
-                element.Kind != vsCMElement.vsCMElementParameter)
-            {
-                EditPoint start = element.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
-                EditPoint end = element.GetEndPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
-                end.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-                end.CharLeft(1);
+            EditPoint start = element.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+            EditPoint end = element.GetEndPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+            end.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+            end.CharLeft(1);
 
-                start.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-                end.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-            }
+            start.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+            end.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
         }
 
         /// <summary>
@@ -107,15 +101,36 @@
         private void CheckBlockEnd(CodeElement element)
         {
             EditPoint endBlock = element.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes).CreateEditPoint();
+            EditPoint startBlock = element.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes).CreateEditPoint();
+            string original = startBlock.GetText(endBlock);
+
             EditPoint endOfEnd = endBlock.CreateEditPoint();
             endOfEnd.EndOfLine();
             string endOfBlockLine = endBlock.GetText(endOfEnd).Trim();
+            if (element.Kind == vsCMElement.vsCMElementAttribute || element.Kind == vsCMElement.vsCMElementOther)
+            {
+                if (endOfBlockLine == "]")
+                {
+                    endBlock.CharRight(1);
+                }
+                else if (endOfBlockLine == ")]")
+                {
+                    endBlock.CharRight(2);
+                }
+
+                endOfEnd = endBlock.CreateEditPoint();
+                endOfEnd.EndOfLine();
+                endOfBlockLine = endBlock.GetText(endOfEnd).Trim();
+            }
+
             if (endOfBlockLine != string.Empty)
             {
                 endBlock.Insert(Environment.NewLine);
             }
 
-            if (element.Kind != vsCMElement.vsCMElementImportStmt)
+            if (element.Kind != vsCMElement.vsCMElementImportStmt &&
+                element.Kind != vsCMElement.vsCMElementAttribute &&
+                element.Kind != vsCMElement.vsCMElementOther)
             {
                 endOfEnd.LineDown(1);
                 endOfEnd.EndOfLine();
@@ -138,7 +153,9 @@
             if (element.Kind != vsCMElement.vsCMElementImportStmt &&
                 element.Kind != vsCMElement.vsCMElementVariable &&
                 element.Kind != vsCMElement.vsCMElementEvent &&
-                element.Kind != vsCMElement.vsCMElementParameter)
+                element.Kind != vsCMElement.vsCMElementParameter &&
+                element.Kind != vsCMElement.vsCMElementAttribute &&
+                element.Kind != vsCMElement.vsCMElementOther)
             {
                 RemoveInternalBlockPadding(element);
                 CheckBlockStart(element);
