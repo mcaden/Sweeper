@@ -27,9 +27,6 @@ namespace TestProjForAddin
 
 namespace test2
 {
-
-
-
     /// <summary>
     /// Test class for testing the addin.
     /// </summary>
@@ -57,21 +54,17 @@ namespace test2
                 for (int i = 0; i < 10; i++)
                 {
 
-                }
 
+                }
             }
 
             public void monkey1()
             {
 
-                if (true)
-                {
+                if (true) {
 
                 }
-
             }
-
-
         }
 
         /// <summary>
@@ -84,8 +77,10 @@ namespace test2
 
         public Test()
         {
+        }
 
-        }private List<string> test = new List<string>();
+        private List<string> test = new List<string>();
+
         private string Test2()
         {
             //This is a comment in Test2
@@ -95,7 +90,6 @@ namespace test2
 
         void test5()
         {
-
         }
 
         ///<summary>
@@ -103,10 +97,6 @@ namespace test2
         ///</summary>
         public void Test4()
         {
-
         }
-
-
     }
-
 }

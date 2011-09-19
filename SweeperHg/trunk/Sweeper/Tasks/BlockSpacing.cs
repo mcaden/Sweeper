@@ -44,76 +44,113 @@
         {
             if (projectItem.Name.EndsWith(".cs"))
             {
-                try
+                Debug.WriteLine("Correcting Block Spacing: " + projectItem.Name);
+                TextDocument objTextDoc = (TextDocument)ideWindow.Document.Object("TextDocument");
+                EditPoint startPoint = objTextDoc.StartPoint.CreateEditPoint();
+                foreach (CodeElement element in projectItem.FileCodeModel.CodeElements)
                 {
-                    Debug.WriteLine("Correcting Block Spacing: " + projectItem.Name);
-                    TextDocument objTextDoc = (TextDocument)ideWindow.Document.Object("TextDocument");
-                    EditPoint startPoint = objTextDoc.StartPoint.CreateEditPoint();
-                    RemoveOpenBlockBlankLines(objTextDoc);
-
-                    startPoint = objTextDoc.StartPoint.CreateEditPoint();
-                     RemoveCloseBlockBlankLines(objTextDoc);
-                }
-                catch (Exception exc)
-                {
-                    Debug.WriteLine(exc.ToString());
-                    Debug.WriteLine("Format failed, skipping");
+                    FormatBlockSpacing(element);
                 }
             }
         }
 
         /// <summary>
-        /// Removes Blank lines right after opening a block.
+        /// Removes whitespace immediately inside a block
         /// </summary>
-        /// <param name="doc">The document object to search.</param>
-        private void RemoveOpenBlockBlankLines(TextDocument doc)
+        /// <param name="element">The current code element</param>
+        private void RemoveInternalBlockPadding(CodeElement element)
         {
-            EditPoint startPoint = doc.StartPoint.CreateEditPoint();
-            EditPoint blockPoint = startPoint.CreateEditPoint();
-            TextRanges trs = null;
-
-            while (startPoint.FindPattern("{", (int)vsFindOptions.vsFindOptionsMatchCase, ref blockPoint, ref trs))
+            if (element.Kind != vsCMElement.vsCMElementImportStmt &&
+                element.Kind != vsCMElement.vsCMElementVariable &&
+                element.Kind != vsCMElement.vsCMElementEvent &&
+                element.Kind != vsCMElement.vsCMElementParameter)
             {
-                EditPoint checkPoint = blockPoint.CreateEditPoint();
-                if (checkPoint.Line <= doc.EndPoint.Line - 2)
-                {
-                    checkPoint.LineDown(2);
-                    checkPoint.StartOfLine();
-                    if (blockPoint.GetText(checkPoint).Trim() == string.Empty)
-                    {
-                        checkPoint.LineUp(1);
-                        checkPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-                    }
-                }
+                EditPoint start = element.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+                EditPoint end = element.GetEndPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+                end.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+                end.CharLeft(1);
 
-                startPoint = blockPoint;
+                start.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+                end.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
             }
         }
 
         /// <summary>
-        /// Removes Blank lines right before closing a block.
+        /// Checks to see if there should be additional blank lines immediately after starting a block
         /// </summary>
-        /// <param name="doc">The document object to search.</param>
-        private void RemoveCloseBlockBlankLines(TextDocument doc)
+        /// <param name="element">The current element to check</param>
+        private void CheckBlockStart(CodeElement element)
         {
-            EditPoint startPoint = doc.StartPoint.CreateEditPoint();
-            EditPoint blockPoint = startPoint.CreateEditPoint();
-            TextRanges trs = null;
+            EditPoint start = element.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+            EditPoint end = element.GetEndPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
 
-            while (startPoint.FindPattern("}", (int)vsFindOptions.vsFindOptionsMatchCase, ref blockPoint, ref trs))
+            EditPoint beginStart = start.CreateEditPoint();
+            beginStart.StartOfLine();
+
+            string beginningStartText = beginStart.GetText(start).Trim();
+            if (beginningStartText != string.Empty)
             {
-                EditPoint checkPoint = startPoint.CreateEditPoint();
-                if (checkPoint.Line >= 3)
+                EditPoint endStart = start.CreateEditPoint();
+                endStart.EndOfLine();
+                string restofStartText = start.GetText(endStart).Trim();
+                if (!restofStartText.StartsWith("get;"))
                 {
-                    checkPoint.LineUp(2);
-                    checkPoint.EndOfLine();
-                    if (startPoint.GetText(checkPoint).Trim() == string.Empty)
-                    {
-                        checkPoint.LineDown(1);
-                        checkPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-                    }
+                    start.Insert(Environment.NewLine);
+                }
+            }
+        }
 
-                    startPoint = blockPoint;
+        /// <summary>
+        /// Checks to see if there should be additional blank lines after the end of a block.
+        /// </summary>
+        /// <param name="element">The current element to check</param>
+        private void CheckBlockEnd(CodeElement element)
+        {
+            EditPoint endBlock = element.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes).CreateEditPoint();
+            EditPoint endOfEnd = endBlock.CreateEditPoint();
+            endOfEnd.EndOfLine();
+            string endOfBlockLine = endBlock.GetText(endOfEnd).Trim();
+            if (endOfBlockLine != string.Empty)
+            {
+                endBlock.Insert(Environment.NewLine);
+            }
+
+            if (element.Kind != vsCMElement.vsCMElementImportStmt)
+            {
+                endOfEnd.LineDown(1);
+                endOfEnd.EndOfLine();
+                string lineAfterBlock = endBlock.GetText(endOfEnd).Trim();
+
+                if (lineAfterBlock != string.Empty && !lineAfterBlock.StartsWith("else") && !lineAfterBlock.StartsWith("}"))
+                {
+                    endBlock.Insert(Environment.NewLine);
+                    endBlock.SmartFormat(endOfEnd);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes Blank lines after the opening of a block, or right before the closing of a block.
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        private void FormatBlockSpacing(CodeElement element)
+        {
+            if (element.Kind != vsCMElement.vsCMElementImportStmt &&
+                element.Kind != vsCMElement.vsCMElementVariable &&
+                element.Kind != vsCMElement.vsCMElementEvent &&
+                element.Kind != vsCMElement.vsCMElementParameter)
+            {
+                RemoveInternalBlockPadding(element);
+                CheckBlockStart(element);
+            }
+
+            if (element.Kind != vsCMElement.vsCMElementParameter)
+            {
+                CheckBlockEnd(element);
+
+                foreach (CodeElement childElement in element.Children)
+                {
+                    FormatBlockSpacing(childElement);
                 }
             }
         }

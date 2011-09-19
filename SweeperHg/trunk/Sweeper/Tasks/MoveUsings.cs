@@ -130,7 +130,7 @@
                 }
 
                 origin.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
-                
+
                 if (usingStatements.Count > 0)
                 {
                     origin.Insert("\r\n");

@@ -2,7 +2,6 @@
 {
     using System;
     using System.Diagnostics;
-    using EnvDTE;
 
     /// <summary>
     /// Formats the document based on visual studio formatter settings.

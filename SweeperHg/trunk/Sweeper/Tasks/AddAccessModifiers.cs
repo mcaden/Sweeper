@@ -1,7 +1,5 @@
 ﻿namespace Sweeper
 {
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Reflection;
     using EnvDTE;
@@ -12,32 +10,6 @@
     /// </summary>
     public class AddAccessModifiers : StyleTaskBase
     {
-        /// <summary>
-        /// Keywords used for code element access
-        /// </summary>
-        private Dictionary<vsCMAccess, string> codeAccessKeywords = new Dictionary<vsCMAccess, string>() 
-        { 
-                { vsCMAccess.vsCMAccessPublic, "public" }, 
-                { vsCMAccess.vsCMAccessProtected, "protected" },
-                { vsCMAccess.vsCMAccessPrivate, "private" },
-                { vsCMAccess.vsCMAccessProject, "internal" }
-        };
-
-        /// <summary>
-        /// Keywords used for code element access
-        /// </summary>
-        private Dictionary<vsCMElement, Type> codeElementTypes = new Dictionary<vsCMElement, Type>() 
-        { 
-                { vsCMElement.vsCMElementClass, typeof(CodeClass) }, 
-                { vsCMElement.vsCMElementDelegate, typeof(CodeDelegate) },
-                { vsCMElement.vsCMElementEnum, typeof(CodeEnum) },
-                { vsCMElement.vsCMElementEvent, typeof(CodeEvent) },
-                { vsCMElement.vsCMElementFunction, typeof(CodeFunction) },
-                { vsCMElement.vsCMElementProperty, typeof(CodeProperty) },
-                { vsCMElement.vsCMElementStruct, typeof(CodeStruct) },
-                { vsCMElement.vsCMElementVariable, typeof(CodeVariable) }
-        };
-
         /// <summary>
         /// Initializes a new instance of the AddAccessModifiers class
         /// </summary>
@@ -90,16 +62,16 @@
         /// <param name="codeElement">The CodeElement to add missing access modifiers too. Includes children.</param>
         private void AddMissingAccessModifiers(CodeElement codeElement)
         {
-            if (codeElement.Kind != vsCMElement.vsCMElementInterface)
+            if (codeElement.Kind != vsCMElement.vsCMElementInterface && CodeElementBlockTypes.ContainsKey(codeElement.Kind))
             {
                 for (int i = 1; i <= codeElement.Children.Count; i++)
                 {
                     CodeElement element = codeElement.Children.Item(i) as CodeElement;
 
-                    if (element.Kind != vsCMElement.vsCMElementImportStmt && element.Kind != vsCMElement.vsCMElementInterface)
+                    if (element.Kind != vsCMElement.vsCMElementImportStmt && element.Kind != vsCMElement.vsCMElementInterface && CodeElementBlockTypes.ContainsKey(codeElement.Kind))
                     {
                         // Get the element's access through reflection rather than a massive switch.
-                        vsCMAccess access = (vsCMAccess)codeElementTypes[element.Kind].InvokeMember("Access", BindingFlags.GetProperty, null, element, null);
+                        vsCMAccess access = (vsCMAccess)CodeElementTypes[element.Kind].InvokeMember("Access", BindingFlags.GetProperty, null, element, null);
 
                         if (element.Kind == vsCMElement.vsCMElementClass || element.Kind == vsCMElement.vsCMElementStruct)
                         {
@@ -124,7 +96,7 @@
 
                         if (element.Kind == vsCMElement.vsCMElementProperty || element.Kind == vsCMElement.vsCMElementVariable || element.Kind == vsCMElement.vsCMElementEvent)
                         {
-                            CodeElements attributes = (CodeElements)codeElementTypes[element.Kind].InvokeMember("Attributes", BindingFlags.GetProperty, null, element, null);
+                            CodeElements attributes = (CodeElements)CodeElementTypes[element.Kind].InvokeMember("Attributes", BindingFlags.GetProperty, null, element, null);
 
                             start = attributes.Count > 0 ? element.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter).CreateEditPoint() : element.StartPoint.CreateEditPoint();
                         }
@@ -136,11 +108,11 @@
                         end = start.CreateEditPoint();
                         end.EndOfLine();
                         declaration = start.GetText(end);
-                        if (!declaration.StartsWith(codeAccessKeywords[access]) && !declaration.StartsWith("partial"))
+                        if (!declaration.StartsWith(CodeAccessKeywords[access]) && !declaration.StartsWith("partial"))
                         {
                             object[] args = new object[1];
                             args.SetValue(access, 0);
-                            codeElementTypes[element.Kind].InvokeMember("Access", BindingFlags.SetProperty, null, element, args);
+                            CodeElementTypes[element.Kind].InvokeMember("Access", BindingFlags.SetProperty, null, element, args);
                         }
 
                         declaration = start.GetText(end);
