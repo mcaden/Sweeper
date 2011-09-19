@@ -1,7 +1,5 @@
 ﻿namespace Sweeper
 {
-    using EnvDTE;
-
     /// <summary>
     /// Interface for varying tasks to be performed.
     /// </summary>

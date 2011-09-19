@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Reflection;
     using System.Windows.Forms;
     using EnvDTE;
     using EnvDTE80;
@@ -120,68 +121,6 @@
         }
 
         /// <summary>
-        /// Class priority enums to sort elements by their type.  
-        /// Built-in type enums are not sufficient for this because they span multiple types.
-        /// </summary>
-        public enum ElementType : int
-        {
-            /// <summary>
-            /// A class field.
-            /// </summary>
-            FIELD,
-
-            /// <summary>
-            /// A class constructor.
-            /// </summary>
-            CONSTRUCTOR,
-
-            /// <summary>
-            /// A class finalizer.
-            /// </summary>
-            FINALIZER,
-
-            /// <summary>
-            /// A delegate.
-            /// </summary>
-            DELEGATE,
-
-            /// <summary>
-            /// A class' event.
-            /// </summary>
-            EVENT,
-
-            /// <summary>
-            /// An enumeration
-            /// </summary>
-            ENUM,
-
-            /// <summary>
-            /// An interface implemented within a class.
-            /// </summary>
-            INTERFACE,
-
-            /// <summary>
-            /// A class property.
-            /// </summary>
-            PROPERTY,
-
-            /// <summary>
-            /// A method within a class.
-            /// </summary>
-            METHOD,
-
-            /// <summary>
-            /// A struct within a class.
-            /// </summary>
-            STRUCT,
-
-            /// <summary>
-            /// A class within a class.
-            /// </summary>
-            CLASS
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether the task is disabled for a single iteration.
         /// </summary>
         public bool IsTemporarilyDisabled { get; set; }
@@ -292,7 +231,11 @@
                     EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
                     EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
 
-                    currentBlock = EvaluateBlock(codeElement, element, ref newStartPoint);
+                    currentBlock = null;
+                    if (CodeElementBlockTypes.ContainsKey(element.Kind))
+                    {
+                        currentBlock = EvaluateBlock(codeElement, element, ref newStartPoint);
+                    }
 
                     if (currentBlock != null)
                     {
@@ -340,153 +283,171 @@
         private CodeBlock EvaluateBlock(CodeElement parentElement, CodeElement element, ref EditPoint newStartPoint)
         {
             CodeBlock currentBlock = null;
-            switch (element.Kind)
+            ElementType blockType = GetType(element);
+            bool blockStatic = GetElementIsStatic(element);
+            bool blockConstant = GetElementIsConstant(element);
+            string body = GetCodeBlockText(parentElement, element, out newStartPoint);
+            ElementAccess blockAccess = GetAccess(element, blockConstant, blockStatic);
+            int weight = GetWeight(element);
+
+            currentBlock = new CodeBlock(blockAccess, blockType, element.Name, body);
+            return currentBlock;
+        }
+
+        /// <summary>
+        /// Gets a weight used for sorting from a given element
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        /// <returns>A weight used for sorting from a given element</returns>
+        private int GetWeight(CodeElement element)
+        {
+            int weight = 0;
+            if (element.Kind == vsCMElement.vsCMElementFunction)
             {
-                case vsCMElement.vsCMElementVariable:
-                    CodeVariable variable = element as CodeVariable;
-                    if (variable != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(variable.Access, variable.IsConstant, variable.IsShared), ElementType.FIELD, variable.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeVariable " + element.Name + " null");
-                    }
+                CodeFunction functionElement = (CodeFunction)element;
 
-                    break;
-                case vsCMElement.vsCMElementFunction:
-                    // method, constructor, or finalizer
-                    CodeFunction2 function = element as CodeFunction2;
-                    if (function != null)
-                    {
-                        int weight = 0;
-                        foreach (CodeParameter2 param in function.Parameters)
-                        {
-                            string paramKind = param.ParameterKind.ToString().Replace("vsCMParameterKind", string.Empty);
-                            paramKind = paramKind == "None" ? string.Empty : paramKind;
-                            paramKind = paramKind == "ParamArray" ? "params" : paramKind;
-                            weight += param.Type.AsString.Length + param.FullName.Length + paramKind.Length;
-                        }
-
-                        if (function.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
-                        {
-                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.CONSTRUCTOR, function.Name, GetCodeBlockText(parentElement, element, out newStartPoint), weight);
-                        }
-                        else if (function.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
-                        {
-                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.FINALIZER, function.Name, GetCodeBlockText(parentElement, element, out newStartPoint), weight);
-                        }
-                        else
-                        {
-                            currentBlock = new CodeBlock(EvaluateAccess(function.Access, function.IsShared), ElementType.METHOD, function.Name, GetCodeBlockText(parentElement, element, out newStartPoint), weight);
-                        }
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeFunction " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementDelegate:
-                    CodeDelegate delegateElement = element as CodeDelegate;
-                    if (delegateElement != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(delegateElement.Access, false), ElementType.DELEGATE, delegateElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeDelegate " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementEvent:
-                    CodeEvent eventElement = element as CodeEvent;
-                    if (eventElement != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(eventElement.Access, eventElement.IsShared), ElementType.EVENT, eventElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeEvent " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementEnum:
-                    CodeEnum enumElement = element as CodeEnum;
-                    if (enumElement != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(enumElement.Access, false), ElementType.ENUM, enumElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeEnum " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementInterface:
-                    CodeInterface interfaceElement = element as CodeInterface;
-                    if (interfaceElement != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(interfaceElement.Access, false), ElementType.INTERFACE, interfaceElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeInterface " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementProperty:
-                    CodeProperty propertyElement = element as CodeProperty;
-                    if (propertyElement != null)
-                    {
-                        bool isStatic = false;
-                        if (propertyElement.Getter != null)
-                        {
-                            isStatic = propertyElement.Getter.IsShared;
-                        }
-                        else if (propertyElement.Setter != null)
-                        {
-                            isStatic = propertyElement.Setter.IsShared;
-                        }
-
-                        currentBlock = new CodeBlock(EvaluateAccess(propertyElement.Access, isStatic), ElementType.PROPERTY, propertyElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeProperty " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementStruct:
-                    CodeStruct structElement = element as CodeStruct;
-                    if (structElement != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(structElement.Access, false), ElementType.STRUCT, structElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeStruct " + element.Name + " null");
-                    }
-
-                    break;
-                case vsCMElement.vsCMElementClass:
-                    CodeClass classElement = element as CodeClass;
-                    if (classElement != null)
-                    {
-                        currentBlock = new CodeBlock(EvaluateAccess(classElement.Access, false), ElementType.CLASS, classElement.Name, GetCodeBlockText(parentElement, element, out newStartPoint));
-                    }
-                    else
-                    {
-                        Debug.WriteLine("CodeStruct " + element.Name + " null");
-                    }
-
-                    break;
-                default:
-                    Debug.WriteLine("unknown element: " + element.Name + " - " + element.Kind);
-                    break;
+                foreach (CodeParameter2 param in functionElement.Parameters)
+                {
+                    string paramKind = param.ParameterKind.ToString().Replace("vsCMParameterKind", string.Empty);
+                    paramKind = paramKind == "None" ? string.Empty : paramKind;
+                    paramKind = paramKind == "ParamArray" ? "params" : paramKind;
+                    weight += param.Type.AsString.Length + param.FullName.Length + paramKind.Length;
+                }
             }
 
-            return currentBlock;
+            return weight;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether a given code element is static
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        /// <returns>A value indicating whether a given code element is static</returns>
+        private bool GetElementIsStatic(CodeElement element)
+        {
+            object isStatic;
+            bool isRetrieved = false;
+            if (element.Kind == vsCMElement.vsCMElementProperty)
+            {
+                isRetrieved = GetElementProperty(element, "Getter.IsShared", out isStatic) || GetElementProperty(element, "Setter.IsShared", out isStatic);
+            }
+            else
+            {
+                isRetrieved = GetElementProperty(element, "IsShared", out isStatic);
+            }
+
+            if (!isRetrieved)
+            {
+                isStatic = false;
+            }
+
+            return (bool)isStatic;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether a given code element is a constant
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        /// <returns>A value indicating whether a given code element is a constant</returns>
+        private bool GetElementIsConstant(CodeElement element)
+        {
+            object isConstant;
+            return GetElementProperty(element, "IsConstant", out isConstant) && (bool)isConstant;
+        }
+
+        /// <summary>
+        /// Gets a property within a given element. Will search down the chain if given a compound path
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        /// <param name="propertyName">The property name to look for</param>
+        /// <param name="propertyValue">The property value retrieved</param>
+        /// <returns>True if the given property was retrieved</returns>
+        private bool GetElementProperty(CodeElement element, string propertyName, out object propertyValue)
+        {
+            bool isSuccessful = false;
+            propertyValue = null;
+            if (!string.IsNullOrEmpty(propertyName) && propertyName.Trim() != string.Empty)
+            {
+                string[] propertyParts = propertyName.Split('.');
+                PropertyInfo returnedProperty = CodeElementTypes[element.Kind].GetProperty(propertyParts[0]);
+                if (returnedProperty != null)
+                {
+                    propertyValue = CodeElementTypes[element.Kind].InvokeMember(returnedProperty.Name, BindingFlags.GetProperty, null, element, null);
+                }
+
+                if (returnedProperty != null && (propertyValue != null && propertyParts.Length > 1))
+                {
+                    int index = 1;
+                    while (propertyValue != null && returnedProperty != null && index < propertyParts.Length)
+                    {
+                        returnedProperty = returnedProperty.PropertyType.GetProperty(propertyParts[index]);
+                        if (returnedProperty != null)
+                        {
+                            propertyValue = returnedProperty.ReflectedType.InvokeMember(returnedProperty.Name, BindingFlags.GetProperty, null, propertyValue, null);
+                        }
+
+                        index++;
+                    }
+
+                    if (index == propertyParts.Length && returnedProperty != null)
+                    {
+                        isSuccessful = true;
+                    }
+                }
+                else if (returnedProperty != null && propertyParts.Length == 1)
+                {
+                    isSuccessful = true;
+                }
+            }
+
+            if (!isSuccessful)
+            {
+                propertyValue = null;
+            }
+
+            return isSuccessful;
+        }
+
+        /// <summary>
+        /// Gets the ElementType of a given code element
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        /// <returns>The ElementType of a given code element</returns>
+        private ElementType GetType(CodeElement element)
+        {
+            ElementType type = CodeElementBlockTypes[element.Kind];
+            if (element.Kind == vsCMElement.vsCMElementFunction)
+            {
+                CodeFunction2 functionElement = (CodeFunction2)element;
+                if (functionElement.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
+                {
+                    type = ElementType.CONSTRUCTOR;
+                }
+                else if (functionElement.FunctionKind == vsCMFunction.vsCMFunctionDestructor)
+                {
+                    type = ElementType.FINALIZER;
+                }
+            }
+
+            return type;
+        }
+
+        /// <summary>
+        /// Retrieves the access modifiers of an element
+        /// </summary>
+        /// <param name="element">The current code element</param>
+        /// <param name="isConstant">Whether the element is a constant</param>
+        /// <param name="isStatic">Whether the element is static</param>
+        /// <returns>A valid ElementAccess</returns>
+        private ElementAccess GetAccess(CodeElement element, bool isConstant, bool isStatic)
+        {
+            object access;
+            if (!GetElementProperty(element, "Access", out access))
+            {
+                access = vsCMAccess.vsCMAccessPrivate;
+            }
+
+            return EvaluateAccess((vsCMAccess)access, isConstant, isStatic);
         }
 
         /// <summary>
@@ -499,7 +460,6 @@
             TextRanges trs = null;
 
             string classBackup = classPoint.GetText(codeElement.EndPoint);
-
             try
             {
                 if (classPoint.FindPattern("{", (int)vsFindOptions.vsFindOptionsMatchCase, ref classPoint, ref trs))

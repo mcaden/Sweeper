@@ -450,7 +450,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.2.0.39802, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.2.0.754, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_AD57C947DF01BC3FB4B6CA469C8DC069"
@@ -655,14 +655,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Sweeper"
-        "ProductCode" = "8:{DEAF040A-D639-48FC-A2E8-24A68A507AA9}"
-        "PackageCode" = "8:{BF57269A-FD8C-4759-84E4-941FA70DCEF3}"
+        "ProductCode" = "8:{185992E5-1AC9-47D7-B3A4-C372CCA4A9BC}"
+        "PackageCode" = "8:{C5DB1615-9825-4351-9A95-540BBA9AA1EB}"
         "UpgradeCode" = "8:{73BF1AB7-3E54-4AB2-8CF7-089CF7B8145E}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.4"
+        "ProductVersion" = "8:0.5"
         "Manufacturer" = "8:Katalyst Studios"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://amoore.katalyststudios.com"
