@@ -305,7 +305,6 @@
             if (element.Kind == vsCMElement.vsCMElementFunction)
             {
                 CodeFunction functionElement = (CodeFunction)element;
-
                 foreach (CodeParameter2 param in functionElement.Parameters)
                 {
                     string paramKind = param.ParameterKind.ToString().Replace("vsCMParameterKind", string.Empty);
@@ -471,17 +470,20 @@
                     for (int i = 1; i <= codeElement.Children.Count; i++)
                     {
                         CodeElement element = codeElement.Children.Item(i);
-                        EditPoint elementStartPoint = element.StartPoint.CreateEditPoint();
-                        EditPoint newStartPoint = elementStartPoint.CreateEditPoint();
-                        CodeBlock block = EvaluateBlock(codeElement, element, ref newStartPoint);
-
-                        if (block != null)
+                        if (element.Kind != vsCMElement.vsCMElementAttribute)
                         {
-                            blocks.Add(block);
-                            newStartPoint.Delete(element.EndPoint);
-                            newStartPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+                            EditPoint startBlock = element.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes).CreateEditPoint();
+                            EditPoint newStartPoint = startBlock.CreateEditPoint();
+                            CodeBlock block = EvaluateBlock(codeElement, element, ref newStartPoint);
 
-                            i--;
+                            if (block != null)
+                            {
+                                blocks.Add(block);
+                                newStartPoint.Delete(element.EndPoint);
+                                newStartPoint.DeleteWhitespace(vsWhitespaceOptions.vsWhitespaceOptionsVertical);
+
+                                i--;
+                            }
                         }
                     }
 

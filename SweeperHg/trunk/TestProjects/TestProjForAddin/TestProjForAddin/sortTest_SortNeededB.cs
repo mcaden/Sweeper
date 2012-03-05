@@ -4,7 +4,7 @@ using System.Data;
 
 namespace TestProjForAddin
 {
-
+    [Serializable]
     public class SortTest_SortNeededB
     {
         private int field;
