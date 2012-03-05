@@ -110,21 +110,19 @@
             string endOfBlockLine = endBlock.GetText(endOfEnd).Trim();
             if (element.Kind == vsCMElement.vsCMElementAttribute || element.Kind == vsCMElement.vsCMElementOther)
             {
-                if (endOfBlockLine == "]")
+                if (endOfBlockLine != "]" && endOfBlockLine != ")]" && !endOfBlockLine.StartsWith(","))
                 {
-                    endBlock.CharRight(1);
+                    endOfEnd = endBlock.CreateEditPoint();
+                    endOfEnd.EndOfLine();
+                    endOfBlockLine = endBlock.GetText(endOfEnd).Trim();
+                    if (endOfBlockLine != string.Empty)
+                    {
+                        endBlock.Insert(Environment.NewLine);
+                        endBlock.SmartFormat(endOfEnd);
+                    }
                 }
-                else if (endOfBlockLine == ")]")
-                {
-                    endBlock.CharRight(2);
-                }
-
-                endOfEnd = endBlock.CreateEditPoint();
-                endOfEnd.EndOfLine();
-                endOfBlockLine = endBlock.GetText(endOfEnd).Trim();
             }
-
-            if (endOfBlockLine != string.Empty)
+            else if (endOfBlockLine != string.Empty)
             {
                 endBlock.Insert(Environment.NewLine);
                 endBlock.SmartFormat(endOfEnd);

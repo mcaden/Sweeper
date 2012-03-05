@@ -450,7 +450,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.2.0.754, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SweeperUI, Version=0.2.0.24274, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_AD57C947DF01BC3FB4B6CA469C8DC069"
@@ -655,14 +655,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Sweeper"
-        "ProductCode" = "8:{185992E5-1AC9-47D7-B3A4-C372CCA4A9BC}"
-        "PackageCode" = "8:{C5DB1615-9825-4351-9A95-540BBA9AA1EB}"
+        "ProductCode" = "8:{D6EE7245-C823-43CC-BB6B-BB6EEA618DB0}"
+        "PackageCode" = "8:{56B2637A-DFB6-4C7E-B6C2-E8CEDD5CAA68}"
         "UpgradeCode" = "8:{73BF1AB7-3E54-4AB2-8CF7-089CF7B8145E}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.5"
+        "ProductVersion" = "8:0.6"
         "Manufacturer" = "8:Katalyst Studios"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://amoore.katalyststudios.com"
@@ -1186,7 +1186,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_083BB025EE3C435F9E7EC491540E27C4"
             {
-            "SourcePath" = "8:..\\CustomActions\\obj\\Debug\\CustomActions.dll"
+            "SourcePath" = "8:..\\CustomActions\\obj\\Release\\CustomActions.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_40BE981457194FAE8C38B02D0F8C372F"
@@ -1214,7 +1214,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_70ECCD5324D74D5B83358413414EC22A"
             {
-            "SourcePath" = "8:..\\..\\Sweeper\\obj\\Debug\\Sweeper.dll"
+            "SourcePath" = "8:..\\..\\Sweeper\\obj\\Release\\Sweeper.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_40BE981457194FAE8C38B02D0F8C372F"

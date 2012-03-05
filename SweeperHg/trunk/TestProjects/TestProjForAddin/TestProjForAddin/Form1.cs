@@ -1,16 +1,6 @@
-﻿using System;
-using System.Text;
-using System.Windows.Forms;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-
-using System.Linq;
-
-
-namespace TestProjForAddin
+﻿namespace TestProjForAddin
 {
+    using System.Windows.Forms;
 
     public partial class Form1 : Form
     {
@@ -21,12 +11,11 @@ namespace TestProjForAddin
     }
 }
 
-
-
-
-
 namespace test2
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Test class for testing the addin.
     /// </summary>
@@ -34,57 +23,32 @@ namespace test2
     {
 
         //
+        // test
         //
-        //test
-        //
-
+        [Serializable]
         private string myUrl = "http://sweeper.codeplex.com";
 
-        /// <summary>
-        /// Is a monkey...
-        /// </summary>
-        private class Monkey
-        {
-            /// <summary>
-            /// private monkey
-            /// </summary>
-            private void monkey2()
-            {
-
-                for (int i = 0; i < 10; i++)
-                {
-
-
-                }
-            }
-
-            public void monkey1()
-            {
-
-                if (true) {
-
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a test3
-        /// </summary>
- 
-
-
-        private string Test3 { get; set; }
+        private List<string> test = new List<string>();
 
         public Test()
         {
         }
 
-        private List<string> test = new List<string>();
+        /// <summary>
+        /// Gets or sets a test3
+        /// </summary>
+        private string Test3 { get; set; }
+
+        /// <summary>
+        ///Look into the void.
+        /// </summary>
+        public void Test4()
+        {
+        }
 
         private string Test2()
         {
-            //This is a comment in Test2
-
+            // This is a comment in Test2
             return String.Empty;
         }
 
@@ -92,11 +56,38 @@ namespace test2
         {
         }
 
-        ///<summary>
-        ///Look into the void.
-        ///</summary>
-        public void Test4()
+        [Serializable]
+        [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = true)]
+        private class AttTest
         {
+            private int test;
+        }
+
+        /// <summary>
+        /// Is a monkey...
+        /// </summary>
+        [Serializable]
+        private class Monkey
+        {
+            public void monkey1()
+            {
+                if (true)
+                {
+
+                }
+            }
+
+            /// <summary>
+            /// private monkey
+            /// </summary>
+            [Serializable]
+            private void monkey2()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+
+                }
+            }
         }
     }
 }
