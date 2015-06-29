@@ -30,6 +30,16 @@
         private const string VisualStudio2010State = "AddinPath2010";
 
         /// <summary>
+        /// Install state for visual studio 2010.
+        /// </summary>
+        private const string VisualStudio2012State = "AddinPath2012";
+
+        /// <summary>
+        /// Install state for visual studio 2010.
+        /// </summary>
+        private const string VisualStudio2013State = "AddinPath2013";
+
+        /// <summary>
         /// Initializes a new instance of the AddinInstaller class.
         /// </summary>
         public AddinInstaller()
@@ -70,6 +80,22 @@
 
                 SetupAddin(savedState, assemblyName, addinTargetPath, "10.0", VisualStudio2010State);
             }
+
+            if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2012")))
+            {
+                // Setup .addin path and assembly path
+                string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2012\Addins");
+
+                SetupAddin(savedState, assemblyName, addinTargetPath, "11.0", VisualStudio2012State);
+            }
+
+            if (Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2013")))
+            {
+                // Setup .addin path and assembly path
+                string addinTargetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Visual Studio 2013\Addins");
+
+                SetupAddin(savedState, assemblyName, addinTargetPath, "12.0", VisualStudio2013State);
+            }
         }
 
         /// <summary>
@@ -92,6 +118,18 @@
                 if (File.Exists(fileNameVS2010))
                 {
                     File.Delete(fileNameVS2010);
+                }
+
+                string fileNameVS2012 = (string)savedState[VisualStudio2012State];
+                if (File.Exists(fileNameVS2012))
+                {
+                    File.Delete(fileNameVS2012);
+                }
+
+                string fileNameVS2013 = (string)savedState[VisualStudio2013State];
+                if (File.Exists(fileNameVS2013))
+                {
+                    File.Delete(fileNameVS2013);
                 }
             }
             catch (Exception ex)
@@ -120,6 +158,18 @@
                 if (File.Exists(fileNameVS2010))
                 {
                     File.Delete(fileNameVS2010);
+                }
+
+                string fileNameVS2012 = (string)savedState[VisualStudio2012State];
+                if (File.Exists(fileNameVS2012))
+                {
+                    File.Delete(fileNameVS2012);
+                }
+
+                string fileNameVS2013 = (string)savedState[VisualStudio2013State];
+                if (File.Exists(fileNameVS2013))
+                {
+                    File.Delete(fileNameVS2013);
                 }
             }
             catch (Exception ex)
