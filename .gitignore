@@ -1,0 +1,9 @@
+*/bin
+*/obj
+*/Debug
+*/Release
+*.db
+*.pdb
+*.cache
+*.Cache
+*.suo

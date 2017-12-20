@@ -1,9 +1,0 @@
-relre:/bin
-relre:/obj
-relre:/Debug
-relre:/Release
-relre:.db
-relre:.pdb
-relre:.cache
-relre:.Cache
-relre:.suo
