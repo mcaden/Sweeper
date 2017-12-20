@@ -1,5 +1,5 @@
 # Sweeper - VSIX
-_**Coming Soon**_  
+_**Coming Someday?**_  
 Sweeper is a tool for C# code formatting. The legacy version was deployed as an add-in for VS 2008-2013. It will soon be revamped to be packaged as a VSIX.
 
 
